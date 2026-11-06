@@ -29,10 +29,16 @@ class Named {
 
 class Country extends Named {
   Country.fromJson(Map<String, dynamic> j)
-      : cities = (j['cities'] as List).map((c) => Named(c['id'] as int, c['name'] as String)).toList(),
+      : code = j['code'] as String,
+        dialCode = j['dial_code'] as String,
+        cities = (j['cities'] as List).map((c) => Named(c['id'] as int, c['name'] as String)).toList(),
         super(j['id'] as int, j['name'] as String);
 
+  final String code, dialCode;
   final List<Named> cities;
+
+  /// Le drapeau se déduit du code ISO, sans image à embarquer.
+  String get flag => String.fromCharCodes(code.toUpperCase().codeUnits.map((c) => 0x1F1E6 + c - 0x41));
 }
 
 class Language {
