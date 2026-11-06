@@ -1,0 +1,8 @@
+# Documents commerciaux : le dépôt est public
+*.docx
+
+# Les maquettes ont leur propre dépôt
+/maquettes-superlivraison/
+
+# Configuration locale
+/.claude/
