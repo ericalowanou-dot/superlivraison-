@@ -22,6 +22,18 @@ class OrderInfolist
                     ViewEntry::make('voice')->label('Vocal')->view('filament.voice-player')
                         ->visible(fn (Order $record) => $record->voice_note_id !== null),
                 ]),
+                Section::make('Articles')->visible(fn (Order $record) => $record->shop_id !== null)->schema([
+                    TextEntry::make('shop.name')->label('Boutique'),
+                    TextEntry::make('shop.phone')->label('Téléphone de la boutique')->placeholder('Non renseigné'),
+                    TextEntry::make('shop.landmark')->label('Lieu de retrait')->placeholder('Non renseigné'),
+                    RepeatableEntry::make('items')->hiddenLabel()->columns(3)->schema([
+                        TextEntry::make('name')->label('Article'),
+                        TextEntry::make('quantity')->label('Quantité'),
+                        TextEntry::make('unit_price')->label('Prix unitaire')->suffix(' FCFA')->numeric(0, ',', ' '),
+                    ]),
+                    TextEntry::make('goods_total')->label('Total des articles')->suffix(' FCFA')->numeric(0, ',', ' '),
+                    TextEntry::make('delivery_fee')->label('Frais de livraison')->suffix(' FCFA')->numeric(0, ',', ' ')->placeholder('À fixer'),
+                ]),
                 Section::make('Livraison')->columns(2)->schema([
                     TextEntry::make('recipient_phone')->label('Téléphone du destinataire')
                         ->visible(fn (Order $record) => $record->recipient_phone !== null),

@@ -2,14 +2,19 @@
 
 namespace App\Models;
 
+use App\Enums\ReviewStatus;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Facades\Storage;
 
 class Shop extends Model
 {
-    protected $fillable = ['city_id', 'name', 'category', 'description', 'phone', 'landmark', 'lat', 'lng', 'image_path', 'is_active'];
+    // Le statut ne passe que par ShopModeration.
+    protected $fillable = ['owner_id', 'city_id', 'name', 'category', 'description', 'phone', 'landmark', 'lat', 'lng', 'image_path', 'is_active'];
+
+    protected $attributes = ['status' => 'pending', 'is_active' => true];
 
     protected function casts(): array
     {
@@ -17,6 +22,8 @@ class Shop extends Model
             'lat' => 'float',
             'lng' => 'float',
             'is_active' => 'boolean',
+            'status' => ReviewStatus::class,
+            'approved_at' => 'datetime',
         ];
     }
 
@@ -29,14 +36,39 @@ class Shop extends Model
         });
     }
 
+    public function owner(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'owner_id')->withTrashed();
+    }
+
     public function city(): BelongsTo
     {
         return $this->belongsTo(City::class);
     }
 
-    /** @param Builder<Shop> $query */
-    public function scopeActive(Builder $query): void
+    public function products(): HasMany
     {
-        $query->where('is_active', true);
+        return $this->hasMany(Product::class);
+    }
+
+    public function orders(): HasMany
+    {
+        return $this->hasMany(Order::class);
+    }
+
+    public function payouts(): HasMany
+    {
+        return $this->hasMany(Payout::class);
+    }
+
+    public function isOpen(): bool
+    {
+        return $this->is_active && $this->status === ReviewStatus::Approved;
+    }
+
+    /** @param Builder<Shop> $query */
+    public function scopeOpen(Builder $query): void
+    {
+        $query->where('is_active', true)->where('status', ReviewStatus::Approved);
     }
 }

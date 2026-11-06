@@ -5,7 +5,7 @@ namespace App\Enums;
 use Filament\Support\Contracts\HasColor;
 use Filament\Support\Contracts\HasLabel;
 
-enum AdStatus: string implements HasColor, HasLabel
+enum ReviewStatus: string implements HasColor, HasLabel
 {
     case Pending = 'pending';
     case Approved = 'approved';

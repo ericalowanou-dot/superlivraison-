@@ -185,6 +185,8 @@ class PaymentService
                 'needs_review' => false,
             ])->save();
 
+            app(ShopPayouts::class)->cancelFor($locked->order);
+
             return $locked;
         });
     }

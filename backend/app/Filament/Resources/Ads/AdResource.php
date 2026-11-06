@@ -3,7 +3,7 @@
 namespace App\Filament\Resources\Ads;
 
 use App\Enums\AdCategory;
-use App\Enums\AdStatus;
+use App\Enums\ReviewStatus;
 use App\Filament\Resources\Ads\Pages\ManageAds;
 use App\Models\Ad;
 use App\Services\AdModeration;
@@ -36,7 +36,7 @@ class AdResource extends Resource
 
     public static function getNavigationBadge(): ?string
     {
-        $pending = Ad::where('status', AdStatus::Pending)->count();
+        $pending = Ad::where('status', ReviewStatus::Pending)->count();
 
         return $pending > 0 ? (string) $pending : null;
     }
@@ -71,15 +71,15 @@ class AdResource extends Resource
                 TextColumn::make('created_at')->label('Envoyée le')->dateTime('d/m H:i')->sortable(),
             ])
             ->filters([
-                SelectFilter::make('status')->label('Statut')->options(AdStatus::class),
+                SelectFilter::make('status')->label('Statut')->options(ReviewStatus::class),
             ])
             ->recordActions([
                 Action::make('approve')->label('Publier')->icon(Heroicon::OutlinedCheck)->color('success')
-                    ->visible(fn (Ad $record) => $record->status !== AdStatus::Approved)
+                    ->visible(fn (Ad $record) => $record->status !== ReviewStatus::Approved)
                     ->requiresConfirmation()
                     ->action(fn (Ad $record, AdModeration $moderation) => $moderation->approve($record)),
                 Action::make('reject')->label('Refuser')->icon(Heroicon::OutlinedXMark)->color('danger')
-                    ->visible(fn (Ad $record) => $record->status !== AdStatus::Rejected)
+                    ->visible(fn (Ad $record) => $record->status !== ReviewStatus::Rejected)
                     ->schema([Textarea::make('reason')->label('Motif')->required()->maxLength(255)])
                     ->action(fn (Ad $record, array $data, AdModeration $moderation) => $moderation->reject($record, $data['reason'])),
                 DeleteAction::make(),

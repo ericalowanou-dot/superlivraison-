@@ -3,7 +3,7 @@
 namespace App\Models;
 
 use App\Enums\AdCategory;
-use App\Enums\AdStatus;
+use App\Enums\ReviewStatus;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -20,7 +20,7 @@ class Ad extends Model
     {
         return [
             'category' => AdCategory::class,
-            'status' => AdStatus::class,
+            'status' => ReviewStatus::class,
             'approved_at' => 'datetime',
         ];
     }
@@ -43,6 +43,6 @@ class Ad extends Model
     /** @param Builder<Ad> $query */
     public function scopeApproved(Builder $query): void
     {
-        $query->where('status', AdStatus::Approved);
+        $query->where('status', ReviewStatus::Approved);
     }
 }

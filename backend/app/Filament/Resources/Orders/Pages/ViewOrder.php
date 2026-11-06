@@ -30,12 +30,18 @@ class ViewOrder extends ViewRecord
     {
         return [
             Action::make('setPrice')
-                ->label(fn (Order $record) => $record->status === OrderStatus::PricePending ? 'Modifier le prix' : 'Fixer le prix')
+                ->label(fn (Order $record) => match (true) {
+                    $record->shop_id !== null => 'Fixer les frais de livraison',
+                    $record->status === OrderStatus::PricePending => 'Modifier le prix',
+                    default => 'Fixer le prix',
+                })
                 ->icon('heroicon-o-banknotes')
                 ->visible(fn (Order $record) => in_array($record->status, [OrderStatus::Received, OrderStatus::PricePending], true))
                 ->schema([
-                    TextInput::make('price')->label('Prix en FCFA')->integer()->minValue(1)->required()
-                        ->default(fn (Order $record) => $record->price),
+                    TextInput::make('price')
+                        ->label(fn (Order $record) => $record->shop_id !== null ? 'Frais de livraison en FCFA' : 'Prix en FCFA')
+                        ->integer()->minValue(1)->required()
+                        ->default(fn (Order $record) => $record->shop_id !== null ? $record->delivery_fee : $record->price),
                 ])
                 ->action(fn (Order $record, array $data) => $this->run(fn (OrderWorkflow $w) => $w->setPrice($record, (int) $data['price'], auth()->user()), 'Prix envoyé au restaurant')),
 

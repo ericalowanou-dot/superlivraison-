@@ -157,8 +157,22 @@ class _OrderScreenState extends State<OrderScreen> {
             children: [
               StatusBadge(order.statusLabel, action: order.awaitsPrice || order.awaitsMobilePayment),
               const SizedBox(height: 8),
-              Text(order.requestText, style: const TextStyle(fontSize: 15)),
+              if (order.items.isEmpty) Text(order.requestText, style: const TextStyle(fontSize: 15)),
               const SizedBox(height: 8),
+              if (order.shopName != null) ...[
+                Muted(order.shopName!, size: 13),
+                const SizedBox(height: 8),
+              ],
+              for (final item in order.items)
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Flexible(child: Muted('${item.quantity} × ${item.name}', size: 13)),
+                    const SizedBox(width: 8),
+                    Muted(money(item.subtotal), size: 13),
+                  ],
+                ),
+              if (order.items.isNotEmpty) const SizedBox(height: 8),
               Muted('Repère : ${order.landmark}', size: 13),
               if (order.recipientPhone != null) Muted('Destinataire : ${order.recipientPhone}', size: 13),
               if (order.hasVoice) const Muted('Vocal joint', size: 13),
@@ -167,7 +181,7 @@ class _OrderScreenState extends State<OrderScreen> {
         ),
         gap,
         if (order.status == 'received') ...[
-          const Muted('Un opérateur lit votre demande et prépare le prix.'),
+          Muted(order.isShopOrder ? 'Un opérateur fixe les frais de livraison.' : 'Un opérateur lit votre demande et prépare le prix.'),
           gap,
         ],
         if (order.awaitsPrice) ...[
@@ -181,6 +195,10 @@ class _OrderScreenState extends State<OrderScreen> {
                   const Label('Prix proposé, livraison comprise'),
                   const SizedBox(height: 2),
                   Heading(money(order.price!), size: 28),
+                  if (order.goodsTotal != null && order.deliveryFee != null) ...[
+                    const SizedBox(height: 4),
+                    Muted('Articles : ${money(order.goodsTotal!)} · Livraison : ${money(order.deliveryFee!)}', size: 13),
+                  ],
                 ],
               ),
             ),
@@ -207,7 +225,7 @@ class _OrderScreenState extends State<OrderScreen> {
           OutlinedButton(onPressed: _busy ? null : _cancel, child: const Text('Annuler la commande')),
           gap,
         ],
-        if (order.status == 'delivered' || order.isCancelled)
+        if (!order.isShopOrder && (order.status == 'delivered' || order.isCancelled))
           OutlinedButton(onPressed: _busy ? null : _reorder, child: const Text('Recommander')),
       ],
     );

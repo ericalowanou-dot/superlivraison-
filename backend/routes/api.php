@@ -3,6 +3,7 @@
 use App\Http\Controllers\Api\AdController;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\CourierController;
+use App\Http\Controllers\Api\MyShopController;
 use App\Http\Controllers\Api\OrderController;
 use App\Http\Controllers\Api\PaymentController;
 use App\Http\Controllers\Api\ProfileController;
@@ -56,6 +57,18 @@ Route::prefix('v1')->group(function () {
 
         Route::get('shops', [ShopController::class, 'index']);
         Route::get('shops/{shop}/image', [ShopController::class, 'image']);
+        Route::get('shops/{shop}/products', [ShopController::class, 'products']);
+        Route::post('shops/{shop}/orders', [ShopController::class, 'checkout'])->middleware('throttle:30,1');
+        Route::get('products/{product}/image', [ShopController::class, 'productImage']);
+
+        Route::get('my-shop', [MyShopController::class, 'show']);
+        Route::post('my-shop', [MyShopController::class, 'save'])->middleware('throttle:20,1');
+        Route::get('my-shop/products', [MyShopController::class, 'products']);
+        Route::post('my-shop/products', [MyShopController::class, 'storeProduct'])->middleware('throttle:60,1');
+        Route::post('my-shop/products/{product}', [MyShopController::class, 'updateProduct'])->middleware('throttle:60,1');
+        Route::delete('my-shop/products/{product}', [MyShopController::class, 'destroyProduct']);
+        Route::get('my-shop/orders', [MyShopController::class, 'orders']);
+        Route::get('my-shop/payouts', [MyShopController::class, 'payouts']);
 
         Route::get('courier/deliveries', [CourierController::class, 'index']);
         Route::post('courier/deliveries/{order}/start', [CourierController::class, 'start']);

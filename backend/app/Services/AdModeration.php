@@ -2,7 +2,7 @@
 
 namespace App\Services;
 
-use App\Enums\AdStatus;
+use App\Enums\ReviewStatus;
 use App\Enums\Role;
 use App\Models\Ad;
 use App\Models\User;
@@ -22,14 +22,14 @@ class AdModeration
 
     public function approve(Ad $ad): void
     {
-        $ad->forceFill(['status' => AdStatus::Approved, 'approved_at' => now(), 'rejection_reason' => null])->save();
+        $ad->forceFill(['status' => ReviewStatus::Approved, 'approved_at' => now(), 'rejection_reason' => null])->save();
 
         $ad->user?->notify(new AppEvent('Publicité publiée', "« {$ad->title} » est maintenant visible."));
     }
 
     public function reject(Ad $ad, string $reason): void
     {
-        $ad->forceFill(['status' => AdStatus::Rejected, 'approved_at' => null, 'rejection_reason' => $reason])->save();
+        $ad->forceFill(['status' => ReviewStatus::Rejected, 'approved_at' => null, 'rejection_reason' => $reason])->save();
 
         $ad->user?->notify(new AppEvent('Publicité refusée', "« {$ad->title} » : {$reason}"));
     }

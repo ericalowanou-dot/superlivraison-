@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Enums\OrderChannel;
 use App\Enums\OrderStatus;
 use App\Enums\PaymentMode;
 use App\Enums\Role;
@@ -16,7 +17,7 @@ use Illuminate\Support\Facades\Notification;
 /** Toutes les étapes d'une commande passent ici, pour garder les règles et l'historique au même endroit. */
 class OrderWorkflow
 {
-    public function __construct(private PaymentService $payments) {}
+    public function __construct(private PaymentService $payments, private ShopPayouts $payouts) {}
 
     /** @param array<string, mixed> $data */
     public function create(User $restaurant, array $data): Order
@@ -49,12 +50,18 @@ class OrderWorkflow
         }
 
         $order = $this->move($order, OrderStatus::PricePending, $operator, "Prix : {$price} FCFA", function (Order $o) use ($price) {
-            $o->price = $price;
+            // Pour un achat en boutique, l'opérateur ne fixe que les frais de livraison.
+            if ($o->channel === OrderChannel::Shop) {
+                $o->delivery_fee = $price;
+                $o->price = $o->goods_total + $price;
+            } else {
+                $o->price = $price;
+            }
             $o->priced_at = now();
             $o->refusal_reason = null;
         });
 
-        $this->notifyRestaurant($order, 'Prix à valider', "Le prix de {$order->reference} est de {$price} FCFA.");
+        $this->notifyRestaurant($order, 'Prix à valider', "Le prix de {$order->reference} est de {$order->price} FCFA.");
 
         return $order;
     }
@@ -81,6 +88,7 @@ class OrderWorkflow
     {
         return $this->move($order, OrderStatus::Received, $restaurant, $reason, function (Order $o) use ($reason) {
             $o->price = null;
+            $o->delivery_fee = null;
             $o->priced_at = null;
             $o->refusal_reason = $reason;
         });
@@ -88,11 +96,15 @@ class OrderWorkflow
 
     public function startPreparing(Order $order, User $actor): Order
     {
-        return $this->move($order, OrderStatus::Preparing, $actor, null, function (Order $o) {
+        $order = $this->move($order, OrderStatus::Preparing, $actor, null, function (Order $o) {
             if ($o->payment_mode === PaymentMode::MobileMoney && ! $o->isPaid()) {
                 throw new WorkflowException('Le paiement mobile doit être reçu avant la préparation.');
             }
         });
+
+        $order->shop?->owner?->notify(new AppEvent('Commande à préparer', "{$order->reference} : {$order->request_text}"));
+
+        return $order;
     }
 
     public function assignCourier(Order $order, User $courier, User $actor): Order
@@ -150,6 +162,8 @@ class OrderWorkflow
             $order->refresh();
         }
 
+        $this->payouts->record($order);
+
         $this->notifyRestaurant($order, 'Commande livrée', "{$order->reference} a été livrée.");
 
         return $order;
@@ -167,6 +181,11 @@ class OrderWorkflow
         });
 
         $this->payments->closePending($order);
+
+        if ($order->channel === OrderChannel::Shop) {
+            app(ShopCheckout::class)->restock($order);
+            $order->shop?->owner?->notify(new AppEvent('Commande annulée', "{$order->reference} : {$reason}"));
+        }
 
         if ($actor->id !== $order->restaurant_id) {
             $this->notifyRestaurant($order, 'Commande annulée', "{$order->reference} : {$reason}");

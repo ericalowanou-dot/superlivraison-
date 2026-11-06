@@ -108,6 +108,18 @@ class _CourierScreenState extends State<CourierScreen> {
         const SizedBox(height: 8),
         Text(order.requestText),
         const SizedBox(height: 6),
+        if (order.shopName != null) ...[
+          Muted('Retrait : ${order.shopName}${order.shopLandmark == null ? '' : ', ${order.shopLandmark}'}', size: 13),
+          if (order.shopPhone != null) ...[
+            const SizedBox(height: 8),
+            OutlinedButton.icon(
+              icon: const Icon(Icons.storefront_outlined, size: 20),
+              label: const Text('Appeler la boutique'),
+              onPressed: () => callPhone(context, order.shopPhone!),
+            ),
+            const SizedBox(height: 8),
+          ],
+        ],
         Muted('Repère : ${order.landmark}', size: 13),
         if (collect) Muted('À encaisser : ${order.price} FCFA', size: 13),
         if (order.recipientPhone != null) ...[

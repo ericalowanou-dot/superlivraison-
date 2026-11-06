@@ -2,7 +2,7 @@
 
 namespace Tests\Feature;
 
-use App\Enums\AdStatus;
+use App\Enums\ReviewStatus;
 use App\Enums\Role;
 use App\Filament\Resources\Ads\Pages\ManageAds;
 use App\Filament\Resources\Shops\Pages\ManageShops;
@@ -48,7 +48,7 @@ class AdsAndShopsTest extends TestCase
         $reader = $this->restaurant();
 
         $ad = $this->submit($author);
-        $this->assertSame(AdStatus::Pending, $ad->status);
+        $this->assertSame(ReviewStatus::Pending, $ad->status);
         $this->assertSame(1, $operator->notifications()->count());
 
         $this->actingAs($reader)->getJson('/api/v1/ads')->assertJsonCount(0, 'data');
@@ -110,10 +110,11 @@ class AdsAndShopsTest extends TestCase
     {
         $city = $this->city();
         $other = City::create(['country_id' => $city->country_id, 'name' => 'Kara']);
-        Shop::create(['city_id' => $city->id, 'name' => 'Boutique Afia', 'category' => 'Épicerie', 'phone' => '+22890000001']);
-        Shop::create(['city_id' => $city->id, 'name' => 'Mode Kodjo', 'category' => 'Vêtements']);
-        Shop::create(['city_id' => $city->id, 'name' => 'Cachée', 'is_active' => false]);
-        Shop::create(['city_id' => $other->id, 'name' => 'Boutique de Kara']);
+        $open = fn (array $data) => tap(Shop::create($data), fn (Shop $shop) => $shop->forceFill(['status' => ReviewStatus::Approved])->save());
+        $open(['city_id' => $city->id, 'name' => 'Boutique Afia', 'category' => 'Épicerie', 'phone' => '+22890000001']);
+        $open(['city_id' => $city->id, 'name' => 'Mode Kodjo', 'category' => 'Vêtements']);
+        $open(['city_id' => $city->id, 'name' => 'Cachée', 'is_active' => false]);
+        $open(['city_id' => $other->id, 'name' => 'Boutique de Kara']);
 
         $this->actingAs($this->restaurant());
 
@@ -133,10 +134,10 @@ class AdsAndShopsTest extends TestCase
             ->assertCanSeeTableRecords([$ad])
             ->callAction(TestAction::make('reject')->table($ad), ['reason' => 'Hors sujet'])
             ->assertHasNoActionErrors();
-        $this->assertSame(AdStatus::Rejected, $ad->refresh()->status);
+        $this->assertSame(ReviewStatus::Rejected, $ad->refresh()->status);
 
         Livewire::test(ManageAds::class)->callAction(TestAction::make('approve')->table($ad));
-        $this->assertSame(AdStatus::Approved, $ad->refresh()->status);
+        $this->assertSame(ReviewStatus::Approved, $ad->refresh()->status);
 
         Livewire::test(ManageShops::class)->assertOk();
     }

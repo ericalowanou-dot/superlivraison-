@@ -12,7 +12,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 class Order extends Model
 {
     // Le statut, le prix et le livreur ne passent que par OrderWorkflow.
-    protected $fillable = ['client_uuid', 'restaurant_id', 'city_id', 'voice_note_id', 'channel', 'request_text', 'delivery_lat', 'delivery_lng', 'delivery_landmark', 'recipient_phone'];
+    protected $fillable = ['client_uuid', 'restaurant_id', 'city_id', 'voice_note_id', 'channel', 'request_text', 'delivery_lat', 'delivery_lng', 'delivery_landmark', 'recipient_phone', 'shop_id', 'goods_total'];
 
     protected $attributes = ['status' => 'received'];
 
@@ -23,6 +23,8 @@ class Order extends Model
             'channel' => OrderChannel::class,
             'payment_mode' => PaymentMode::class,
             'price' => 'integer',
+            'goods_total' => 'integer',
+            'delivery_fee' => 'integer',
             'delivery_lat' => 'float',
             'delivery_lng' => 'float',
             'priced_at' => 'datetime',
@@ -42,6 +44,16 @@ class Order extends Model
     public function restaurant(): BelongsTo
     {
         return $this->belongsTo(User::class, 'restaurant_id')->withTrashed();
+    }
+
+    public function shop(): BelongsTo
+    {
+        return $this->belongsTo(Shop::class);
+    }
+
+    public function items(): HasMany
+    {
+        return $this->hasMany(OrderItem::class);
     }
 
     public function courier(): BelongsTo

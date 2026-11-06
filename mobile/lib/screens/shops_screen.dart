@@ -3,11 +3,14 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 
 import '../models.dart';
+import '../state/cart.dart';
 import '../state/session.dart';
 import '../theme.dart';
 import '../widgets.dart';
+import 'my_shop_screen.dart';
+import 'shop_screen.dart';
 
-/// Annuaire des boutiques de la ville.
+/// Les boutiques de la ville, et l'accès à sa propre boutique.
 class ShopsScreen extends StatefulWidget {
   const ShopsScreen({super.key});
 
@@ -16,6 +19,8 @@ class ShopsScreen extends StatefulWidget {
 }
 
 class _ShopsScreenState extends State<ShopsScreen> {
+  // Le panier survit au passage d'une boutique à l'autre, et d'un onglet à l'autre.
+  final _cart = Cart();
   final List<Shop> _shops = [];
   int _page = 1;
   bool _hasMore = false;
@@ -33,6 +38,7 @@ class _ShopsScreenState extends State<ShopsScreen> {
   @override
   void dispose() {
     _debounce?.cancel();
+    _cart.dispose();
     super.dispose();
   }
 
@@ -69,6 +75,11 @@ class _ShopsScreenState extends State<ShopsScreen> {
     }
   }
 
+  Future<void> _open(Shop shop) async {
+    await Navigator.of(context).push(MaterialPageRoute(builder: (_) => ShopScreen(shop: shop, cart: _cart)));
+    await _fetch(1);
+  }
+
   @override
   Widget build(BuildContext context) {
     if (_loading) return const Center(child: CircularProgressIndicator());
@@ -78,12 +89,40 @@ class _ShopsScreenState extends State<ShopsScreen> {
       child: ListView(
         padding: const EdgeInsets.fromLTRB(16, 4, 16, 20),
         children: [
+          OutlinedButton.icon(
+            icon: const Icon(Icons.add_business_outlined, size: 20),
+            label: const Text('Ma boutique'),
+            onPressed: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const MyShopScreen())),
+          ),
+          const SizedBox(height: 12),
           TextField(
             onChanged: _onSearch,
             textInputAction: TextInputAction.search,
             decoration: const InputDecoration(hintText: 'Rechercher une boutique', prefixIcon: Icon(Icons.search)),
           ),
           const SizedBox(height: 16),
+          ListenableBuilder(
+            listenable: _cart,
+            builder: (context, _) {
+              final shop = _cart.shop;
+              if (shop == null) return const SizedBox.shrink();
+
+              return Padding(
+                padding: const EdgeInsets.only(bottom: 12),
+                child: AppCard(
+                  color: Palette.of(context).soft,
+                  onTap: () => _open(shop),
+                  child: Row(
+                    children: [
+                      const Icon(Icons.shopping_cart_outlined, size: 22),
+                      const SizedBox(width: 12),
+                      Expanded(child: Text('Panier en cours chez ${shop.name}', style: const TextStyle(fontWeight: FontWeight.w700))),
+                    ],
+                  ),
+                ),
+              );
+            },
+          ),
           if (_error != null && _shops.isEmpty)
             ErrorRetry(error: _error!, onRetry: () => _fetch(1))
           else if (_shops.isEmpty)
@@ -98,10 +137,10 @@ class _ShopsScreenState extends State<ShopsScreen> {
             Padding(
               padding: const EdgeInsets.only(bottom: 12),
               child: AppCard(
-                onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => ShopScreen(shop: shop))),
+                onTap: () => _open(shop),
                 child: Row(
                   children: [
-                    _Thumbnail(shop: shop),
+                    ShopThumbnail(shop: shop),
                     const SizedBox(width: 12),
                     Expanded(
                       child: Column(
@@ -113,6 +152,7 @@ class _ShopsScreenState extends State<ShopsScreen> {
                         ],
                       ),
                     ),
+                    const Icon(Icons.chevron_right),
                   ],
                 ),
               ),
@@ -124,65 +164,22 @@ class _ShopsScreenState extends State<ShopsScreen> {
   }
 }
 
-class _Thumbnail extends StatelessWidget {
-  const _Thumbnail({required this.shop});
+class ShopThumbnail extends StatelessWidget {
+  const ShopThumbnail({super.key, required this.shop, this.size = 60});
 
   final Shop shop;
+  final double size;
 
   @override
   Widget build(BuildContext context) {
     return ClipRRect(
       borderRadius: BorderRadius.circular(8),
       child: shop.hasImage
-          ? AuthImage(shop.imagePath, width: 60, height: 60)
+          ? AuthImage(shop.imagePath, width: size, height: size)
           : ColoredBox(
               color: Palette.of(context).soft,
-              child: const SizedBox.square(dimension: 60, child: Icon(Icons.storefront_outlined)),
+              child: SizedBox.square(dimension: size, child: const Icon(Icons.storefront_outlined)),
             ),
-    );
-  }
-}
-
-class ShopScreen extends StatelessWidget {
-  const ShopScreen({super.key, required this.shop});
-
-  final Shop shop;
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: Text(shop.name)),
-      body: SafeArea(
-        child: ListView(
-          padding: const EdgeInsets.fromLTRB(16, 4, 16, 20),
-          children: [
-            if (shop.hasImage) ...[
-              ClipRRect(borderRadius: BorderRadius.circular(12), child: AuthImage(shop.imagePath, fit: BoxFit.fitWidth)),
-              const SizedBox(height: 16),
-            ],
-            Heading(shop.name, size: 22),
-            if (shop.category != null) ...[
-              const SizedBox(height: 6),
-              Align(alignment: Alignment.centerLeft, child: StatusBadge(shop.category!)),
-            ],
-            if (shop.description != null) ...[
-              const SizedBox(height: 12),
-              Text(shop.description!, style: const TextStyle(fontSize: 15)),
-            ],
-            if (shop.landmark != null) ...[
-              const SizedBox(height: 12),
-              Muted(shop.landmark!),
-            ],
-            const SizedBox(height: 20),
-            if (shop.phone != null)
-              BusyButton(label: 'Appeler', icon: Icons.call_outlined, busy: false, onPressed: () => callPhone(context, shop.phone!)),
-            if (shop.lat != null && shop.lng != null) ...[
-              const SizedBox(height: 8),
-              OutlinedButton(onPressed: () => openMap(context, shop.lat!, shop.lng!), child: const Text('Voir sur la carte')),
-            ],
-          ],
-        ),
-      ),
     );
   }
 }

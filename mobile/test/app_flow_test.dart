@@ -107,6 +107,7 @@ class FakeServer {
           'meta': {'current_page': 1, 'last_page': 1},
         });
       case '/ads':
+      case '/ads/mine':
       case '/shops':
         return _ok({
           'data': <Object>[],

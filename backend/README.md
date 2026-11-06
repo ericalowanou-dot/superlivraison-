@@ -58,5 +58,8 @@ Les étapes d'une commande passent par `app/Services/OrderWorkflow.php` et les p
 
 - Seul un webhook signé confirme un paiement mobile.
 - Une commande en paiement mobile n'entre en préparation qu'une fois payée.
+- Une boutique ou une publicité envoyée depuis l'application reste cachée jusqu'à sa validation.
+- Le prix d'un achat en boutique vient de la base, jamais de l'application. L'opérateur n'y ajoute que les frais de livraison.
+- Un reversement au vendeur se crée à la livraison : `app/Services/ShopPayouts.php` retire la commission `SHOP_COMMISSION_PERCENT` du total des articles. Les frais de livraison restent à la plateforme.
 - Un paiement au montant incorrect, en double ou reçu après une annulation passe « à vérifier » dans l'administration.
 - La confirmation de livraison vaut encaissement pour un paiement en espèces.

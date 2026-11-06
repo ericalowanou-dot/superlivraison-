@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Enums\AdCategory;
-use App\Enums\AdStatus;
+use App\Enums\ReviewStatus;
 use App\Enums\Role;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\AdResource;
@@ -71,7 +71,7 @@ class AdController extends Controller
     public function image(Request $request, Ad $ad): StreamedResponse
     {
         $user = $request->user();
-        abort_unless($ad->status === AdStatus::Approved || $ad->user_id === $user->id || $user->isStaff(), 404);
+        abort_unless($ad->status === ReviewStatus::Approved || $ad->user_id === $user->id || $user->isStaff(), 404);
 
         return Storage::disk(config('superlivraison.media_disk'))->response($ad->image_path);
     }

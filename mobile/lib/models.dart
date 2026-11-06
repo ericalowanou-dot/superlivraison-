@@ -49,6 +49,18 @@ class Language {
   final String code, name;
 }
 
+class OrderItem {
+  OrderItem.fromJson(Map<String, dynamic> j)
+      : name = j['name'] as String,
+        unitPrice = j['unit_price'] as int,
+        quantity = j['quantity'] as int;
+
+  final String name;
+  final int unitPrice, quantity;
+
+  int get subtotal => unitPrice * quantity;
+}
+
 class OrderEvent {
   OrderEvent.fromJson(Map<String, dynamic> j)
       : status = j['status'] as String,
@@ -72,6 +84,12 @@ class Order {
         status = j['status'] as String,
         statusLabel = j['status_label'] as String,
         price = j['price'] as int?,
+        goodsTotal = j['goods_total'] as int?,
+        deliveryFee = j['delivery_fee'] as int?,
+        shopName = (j['shop'] as Map?)?['name'] as String?,
+        shopPhone = (j['shop'] as Map?)?['phone'] as String?,
+        shopLandmark = (j['shop'] as Map?)?['landmark'] as String?,
+        items = ((j['items'] as List?) ?? const []).map((i) => OrderItem.fromJson(i as Map<String, dynamic>)).toList(),
         paymentMode = j['payment_mode'] as String?,
         isPaid = j['is_paid'] as bool,
         cancelReason = j['cancel_reason'] as String?,
@@ -83,8 +101,9 @@ class Order {
   final int id;
   final String reference, requestText, channel, landmark, status, statusLabel;
   final bool hasVoice, isPaid;
-  final int? price;
-  final String? paymentMode, cancelReason, recipientPhone;
+  final int? price, goodsTotal, deliveryFee;
+  final String? paymentMode, cancelReason, recipientPhone, shopName, shopPhone, shopLandmark;
+  final List<OrderItem> items;
   final double? lat, lng;
   final DateTime createdAt;
   final List<OrderEvent> events;
@@ -93,6 +112,7 @@ class Order {
   bool get awaitsMobilePayment => status == 'confirmed' && paymentMode == 'mobile_money' && !isPaid;
   bool get isCancelled => status == 'cancelled';
   bool get canCancel => status == 'received' || status == 'price_pending';
+  bool get isShopOrder => channel == 'shop';
 }
 
 class Ad {
@@ -122,15 +142,66 @@ class Shop {
         landmark = j['landmark'] as String?,
         lat = (j['lat'] as num?)?.toDouble(),
         lng = (j['lng'] as num?)?.toDouble(),
-        hasImage = j['has_image'] as bool;
+        hasImage = j['has_image'] as bool,
+        isMine = j['is_mine'] as bool? ?? false,
+        status = j['status'] as String,
+        statusLabel = j['status_label'] as String,
+        rejectionReason = j['rejection_reason'] as String?;
 
   final int id;
-  final String name;
-  final String? category, description, phone, landmark;
+  final String name, status, statusLabel;
+  final String? category, description, phone, landmark, rejectionReason;
   final double? lat, lng;
-  final bool hasImage;
+  final bool hasImage, isMine;
 
   String get imagePath => '/shops/$id/image';
+}
+
+class Product {
+  Product.fromJson(Map<String, dynamic> j)
+      : id = j['id'] as int,
+        name = j['name'] as String,
+        description = j['description'] as String?,
+        price = j['price'] as int,
+        stock = j['stock'] as int?,
+        isActive = j['is_active'] as bool;
+
+  final int id, price;
+  final String name;
+  final String? description;
+  final int? stock;
+  final bool isActive;
+
+  String get imagePath => '/products/$id/image';
+  bool get isSoldOut => stock == 0;
+}
+
+class SellerOrder {
+  SellerOrder.fromJson(Map<String, dynamic> j)
+      : id = j['id'] as int,
+        reference = j['reference'] as String,
+        statusLabel = j['status_label'] as String,
+        goodsTotal = j['goods_total'] as int,
+        createdAt = DateTime.parse(j['created_at'] as String).toLocal(),
+        items = (j['items'] as List).map((i) => OrderItem.fromJson(i as Map<String, dynamic>)).toList();
+
+  final int id, goodsTotal;
+  final String reference, statusLabel;
+  final DateTime createdAt;
+  final List<OrderItem> items;
+}
+
+class Payout {
+  Payout.fromJson(Map<String, dynamic> j)
+      : id = j['id'] as int,
+        orderReference = j['order_reference'] as String?,
+        commission = j['commission'] as int,
+        amount = j['amount'] as int,
+        statusLabel = j['status_label'] as String;
+
+  final int id, commission, amount;
+  final String statusLabel;
+  final String? orderReference;
 }
 
 class Payment {

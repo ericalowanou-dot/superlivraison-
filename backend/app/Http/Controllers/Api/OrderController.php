@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Enums\OrderChannel;
 use App\Enums\OrderStatus;
 use App\Enums\PaymentMode;
+use App\Exceptions\WorkflowException;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\OrderResource;
 use App\Models\Order;
@@ -94,7 +95,7 @@ class OrderController extends Controller
     {
         Gate::authorize('view', $order);
 
-        return new OrderResource($order->load('events'));
+        return new OrderResource($order->load(['events', 'items', 'shop']));
     }
 
     public function acceptPrice(Request $request, Order $order): OrderResource
@@ -128,6 +129,10 @@ class OrderController extends Controller
     public function reorder(Request $request, Order $order): JsonResponse
     {
         Gate::authorize('respond', $order);
+
+        if ($order->channel === OrderChannel::Shop) {
+            throw new WorkflowException('Repassez par la boutique pour recommander ces articles.');
+        }
 
         $copy = $this->workflow->create($request->user(), [
             'client_uuid' => (string) Str::uuid(),

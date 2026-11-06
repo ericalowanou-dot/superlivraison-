@@ -19,6 +19,10 @@ class ShopResource extends JsonResource
             'lat' => $this->lat,
             'lng' => $this->lng,
             'has_image' => $this->image_path !== null,
+            'is_mine' => $this->owner_id !== null && $this->owner_id === $request->user()?->id,
+            'status' => $this->status,
+            'status_label' => $this->status->getLabel(),
+            'rejection_reason' => $this->rejection_reason,
         ];
     }
 }

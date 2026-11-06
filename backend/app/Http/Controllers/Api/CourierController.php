@@ -22,6 +22,7 @@ class CourierController extends Controller
 
         return OrderResource::collection(
             $request->user()->deliveries()
+                ->with(['items', 'shop'])
                 ->whereIn('status', [OrderStatus::Confirmed, OrderStatus::Preparing, OrderStatus::Delivering])
                 ->latest('id')
                 ->get()

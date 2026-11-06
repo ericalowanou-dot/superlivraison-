@@ -23,5 +23,7 @@ return [
     'media_disk' => env('MEDIA_DISK', 'local'),
 
     'ad_image_max_kb' => 5120,
+
+    'shop_commission_percent' => (int) env('SHOP_COMMISSION_PERCENT', 10),
     'voice_max_kb' => 15360,
 ];

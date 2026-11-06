@@ -4,6 +4,7 @@ import 'dart:io' show File;
 
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
+import 'package:image_picker/image_picker.dart' show XFile;
 
 /// Le serveur a répondu par un refus. [message] s'affiche tel quel.
 class ApiException implements Exception {
@@ -71,6 +72,21 @@ class ApiClient {
         ..headers.addAll(_headers)
         ..fields.addAll(fields)
         ..files.add(http.MultipartFile.fromBytes(field, await _readFile(filePath), filename: filename));
+
+      return http.Response.fromStream(await _client.send(request));
+    }, timeout: const Duration(seconds: 90));
+  }
+
+  /// Formulaire dont le fichier est facultatif, par exemple à la modification.
+  Future<dynamic> postForm(String path, Map<String, String> fields, {required String fileField, XFile? file}) {
+    return _send(() async {
+      final request = http.MultipartRequest('POST', _uri(path))
+        ..headers.addAll(_headers)
+        ..fields.addAll(fields);
+
+      if (file != null) {
+        request.files.add(http.MultipartFile.fromBytes(fileField, await file.readAsBytes(), filename: file.name));
+      }
 
       return http.Response.fromStream(await _client.send(request));
     }, timeout: const Duration(seconds: 90));
