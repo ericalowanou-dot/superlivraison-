@@ -160,6 +160,7 @@ class _OrderScreenState extends State<OrderScreen> {
               Text(order.requestText, style: const TextStyle(fontSize: 15)),
               const SizedBox(height: 8),
               Muted('Repère : ${order.landmark}', size: 13),
+              if (order.recipientPhone != null) Muted('Destinataire : ${order.recipientPhone}', size: 13),
               if (order.hasVoice) const Muted('Vocal joint', size: 13),
             ],
           ),

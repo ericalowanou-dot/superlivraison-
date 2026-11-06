@@ -19,6 +19,7 @@ class OrderResource extends JsonResource
                 'lat' => $this->delivery_lat,
                 'lng' => $this->delivery_lng,
                 'landmark' => $this->delivery_landmark,
+                'recipient_phone' => $this->recipient_phone,
             ],
             'status' => $this->status,
             'status_label' => $this->status->getLabel(),

@@ -12,7 +12,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 class Order extends Model
 {
     // Le statut, le prix et le livreur ne passent que par OrderWorkflow.
-    protected $fillable = ['client_uuid', 'restaurant_id', 'city_id', 'voice_note_id', 'channel', 'request_text', 'delivery_lat', 'delivery_lng', 'delivery_landmark'];
+    protected $fillable = ['client_uuid', 'restaurant_id', 'city_id', 'voice_note_id', 'channel', 'request_text', 'delivery_lat', 'delivery_lng', 'delivery_landmark', 'recipient_phone'];
 
     protected $attributes = ['status' => 'received'];
 

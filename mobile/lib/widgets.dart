@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import 'api/api_client.dart';
+import 'state/session.dart';
 import 'theme.dart';
 
 class AppCard extends StatelessWidget {
@@ -131,6 +133,53 @@ class ErrorRetry extends StatelessWidget {
     );
   }
 }
+
+/// Image de l'API : le serveur demande le jeton de connexion.
+class AuthImage extends StatelessWidget {
+  const AuthImage(this.path, {super.key, this.width, this.height, this.fit = BoxFit.cover});
+
+  final String path;
+  final double? width, height;
+  final BoxFit fit;
+
+  @override
+  Widget build(BuildContext context) {
+    final api = AppScope.api(context);
+
+    return Image.network(
+      api.url(path),
+      headers: api.authHeaders,
+      width: width,
+      height: height,
+      fit: fit,
+      errorBuilder: (context, error, stack) => SizedBox(
+        width: width,
+        height: height ?? 120,
+        child: const Center(child: Icon(Icons.broken_image_outlined)),
+      ),
+    );
+  }
+}
+
+Future<void> _openExternal(BuildContext context, Uri uri, String failure) async {
+  final messenger = ScaffoldMessenger.of(context);
+
+  try {
+    if (await launchUrl(uri, mode: LaunchMode.externalApplication)) return;
+  } catch (_) {
+    // Le message ci-dessous couvre ce cas.
+  }
+  messenger.showSnackBar(SnackBar(content: Text(failure)));
+}
+
+Future<void> callPhone(BuildContext context, String phone) =>
+    _openExternal(context, Uri(scheme: 'tel', path: phone), 'Appel impossible depuis ce téléphone.');
+
+Future<void> openMap(BuildContext context, double lat, double lng) => _openExternal(
+      context,
+      Uri.parse('https://www.openstreetmap.org/?mlat=$lat&mlon=$lng#map=18/$lat/$lng'),
+      'Carte impossible à ouvrir.',
+    );
 
 String errorText(Object error) => error is ApiException || error is NetworkException
     ? error.toString()

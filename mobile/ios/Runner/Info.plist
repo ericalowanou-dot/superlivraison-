@@ -47,6 +47,8 @@
 			</array>
 		</dict>
 	</dict>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Vos photos servent à choisir une affiche à publier.</string>
 	<key>NSMicrophoneUsageDescription</key>
 	<string>Le micro sert à dicter votre commande.</string>
 	<key>NSLocationWhenInUseUsageDescription</key>

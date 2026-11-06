@@ -7,9 +7,10 @@ import '../widgets.dart';
 
 /// La carte bouge sous un repère fixe : le centre devient le point de livraison.
 class MapScreen extends StatefulWidget {
-  const MapScreen({super.key, this.initial});
+  const MapScreen({super.key, this.initial, this.title = 'Point de livraison'});
 
   final LatLng? initial;
+  final String title;
 
   @override
   State<MapScreen> createState() => _MapScreenState();
@@ -49,7 +50,7 @@ class _MapScreenState extends State<MapScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Point de livraison')),
+      appBar: AppBar(title: Text(widget.title)),
       body: Stack(
         alignment: Alignment.center,
         children: [

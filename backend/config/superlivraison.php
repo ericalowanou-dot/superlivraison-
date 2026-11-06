@@ -21,5 +21,7 @@ return [
     'payment_pending_minutes' => 15,
 
     'media_disk' => env('MEDIA_DISK', 'local'),
+
+    'ad_image_max_kb' => 5120,
     'voice_max_kb' => 15360,
 ];

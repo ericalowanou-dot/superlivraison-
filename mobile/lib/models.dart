@@ -63,8 +63,12 @@ class Order {
       : id = j['id'] as int,
         reference = j['reference'] as String,
         requestText = j['request_text'] as String,
+        channel = j['channel'] as String? ?? 'text',
         hasVoice = j['has_voice'] as bool,
         landmark = (j['delivery'] as Map)['landmark'] as String,
+        recipientPhone = (j['delivery'] as Map)['recipient_phone'] as String?,
+        lat = ((j['delivery'] as Map)['lat'] as num?)?.toDouble(),
+        lng = ((j['delivery'] as Map)['lng'] as num?)?.toDouble(),
         status = j['status'] as String,
         statusLabel = j['status_label'] as String,
         price = j['price'] as int?,
@@ -77,10 +81,11 @@ class Order {
             .toList();
 
   final int id;
-  final String reference, requestText, landmark, status, statusLabel;
+  final String reference, requestText, channel, landmark, status, statusLabel;
   final bool hasVoice, isPaid;
   final int? price;
-  final String? paymentMode, cancelReason;
+  final String? paymentMode, cancelReason, recipientPhone;
+  final double? lat, lng;
   final DateTime createdAt;
   final List<OrderEvent> events;
 
@@ -88,6 +93,44 @@ class Order {
   bool get awaitsMobilePayment => status == 'confirmed' && paymentMode == 'mobile_money' && !isPaid;
   bool get isCancelled => status == 'cancelled';
   bool get canCancel => status == 'received' || status == 'price_pending';
+}
+
+class Ad {
+  Ad.fromJson(Map<String, dynamic> j)
+      : id = j['id'] as int,
+        categoryLabel = j['category_label'] as String,
+        title = j['title'] as String,
+        description = j['description'] as String?,
+        status = j['status'] as String,
+        statusLabel = j['status_label'] as String,
+        rejectionReason = j['rejection_reason'] as String?;
+
+  final int id;
+  final String categoryLabel, title, status, statusLabel;
+  final String? description, rejectionReason;
+
+  String get imagePath => '/ads/$id/image';
+}
+
+class Shop {
+  Shop.fromJson(Map<String, dynamic> j)
+      : id = j['id'] as int,
+        name = j['name'] as String,
+        category = j['category'] as String?,
+        description = j['description'] as String?,
+        phone = j['phone'] as String?,
+        landmark = j['landmark'] as String?,
+        lat = (j['lat'] as num?)?.toDouble(),
+        lng = (j['lng'] as num?)?.toDouble(),
+        hasImage = j['has_image'] as bool;
+
+  final int id;
+  final String name;
+  final String? category, description, phone, landmark;
+  final double? lat, lng;
+  final bool hasImage;
+
+  String get imagePath => '/shops/$id/image';
 }
 
 class Payment {

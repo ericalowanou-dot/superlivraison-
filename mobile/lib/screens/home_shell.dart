@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 
+import 'ads_screen.dart';
+import 'courier_request_screen.dart';
 import 'orders_screen.dart';
-import 'payments_screen.dart';
 import 'settings_screen.dart';
+import 'shops_screen.dart';
 
-/// Phase 1 : Commandes et Paiements. Le marché arrive en phase 2 et l'onglet 1 reste à définir.
+/// Les quatre pages du restaurant. Les paiements s'ouvrent depuis Commandes.
 class HomeShell extends StatefulWidget {
   const HomeShell({super.key});
 
@@ -15,7 +17,7 @@ class HomeShell extends StatefulWidget {
 class _HomeShellState extends State<HomeShell> {
   int _tab = 0;
 
-  static const _titles = ['Commandes', 'Paiements'];
+  static const _titles = ['Solliciter un livreur', 'Commandes', 'Publicités', 'Boutiques'];
 
   @override
   Widget build(BuildContext context) {
@@ -26,7 +28,7 @@ class _HomeShellState extends State<HomeShell> {
           children: [
             Image.asset('assets/logo.png', width: 36, height: 36, excludeFromSemantics: true),
             const SizedBox(width: 10),
-            Text(_titles[_tab]),
+            Flexible(child: Text(_titles[_tab], overflow: TextOverflow.ellipsis)),
           ],
         ),
         actions: [
@@ -38,13 +40,18 @@ class _HomeShellState extends State<HomeShell> {
           const SizedBox(width: 4),
         ],
       ),
-      body: IndexedStack(index: _tab, children: const [OrdersScreen(), PaymentsScreen()]),
+      body: IndexedStack(
+        index: _tab,
+        children: const [CourierRequestScreen(), OrdersScreen(), AdsScreen(), ShopsScreen()],
+      ),
       bottomNavigationBar: NavigationBar(
         selectedIndex: _tab,
         onDestinationSelected: (i) => setState(() => _tab = i),
         destinations: const [
+          NavigationDestination(icon: Icon(Icons.delivery_dining_outlined), label: 'Livreur'),
           NavigationDestination(icon: Icon(Icons.inventory_2_outlined), label: 'Commandes'),
-          NavigationDestination(icon: Icon(Icons.credit_card_outlined), label: 'Paiements'),
+          NavigationDestination(icon: Icon(Icons.campaign_outlined), label: 'Publicités'),
+          NavigationDestination(icon: Icon(Icons.storefront_outlined), label: 'Boutiques'),
         ],
       ),
     );

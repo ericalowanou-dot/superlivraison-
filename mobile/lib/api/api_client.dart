@@ -42,6 +42,11 @@ class ApiClient {
         if (token != null) 'Authorization': 'Bearer $token',
       };
 
+  /// Pour charger une image protégée par le jeton de connexion.
+  String url(String path) => '$baseUrl$path';
+
+  Map<String, String> get authHeaders => _headers;
+
   Future<dynamic> get(String path) => _send(() => _client.get(_uri(path), headers: _headers));
 
   Future<dynamic> post(String path, [Map<String, dynamic>? body]) => _send(

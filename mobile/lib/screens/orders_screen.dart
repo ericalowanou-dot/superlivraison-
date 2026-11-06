@@ -6,6 +6,7 @@ import '../state/session.dart';
 import '../widgets.dart';
 import 'new_order_screen.dart';
 import 'order_screen.dart';
+import 'payments_screen.dart';
 
 class OrdersScreen extends StatefulWidget {
   const OrdersScreen({super.key});
@@ -36,7 +37,7 @@ class _OrdersScreenState extends State<OrdersScreen> {
 
   Future<void> _fetch(int page) async {
     try {
-      final data = await AppScope.api(context).get('/orders?page=$page') as Map<String, dynamic>;
+      final data = await AppScope.api(context).get('/orders?kind=goods&page=$page') as Map<String, dynamic>;
       final items = (data['data'] as List).map((o) => Order.fromJson(o as Map<String, dynamic>));
       final meta = data['meta'] as Map<String, dynamic>;
 
@@ -84,6 +85,12 @@ class _OrdersScreenState extends State<OrdersScreen> {
               icon: Icons.add,
               busy: false,
               onPressed: () => _open(const NewOrderScreen()),
+            ),
+            const SizedBox(height: 8),
+            OutlinedButton.icon(
+              icon: const Icon(Icons.credit_card_outlined, size: 20),
+              label: const Text('Mes paiements'),
+              onPressed: () => _open(Scaffold(appBar: AppBar(title: const Text('Paiements')), body: const PaymentsScreen())),
             ),
             if (outbox.items.isNotEmpty) ...[
               const SizedBox(height: 12),

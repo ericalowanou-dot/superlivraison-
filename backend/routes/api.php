@@ -1,11 +1,13 @@
 <?php
 
+use App\Http\Controllers\Api\AdController;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\CourierController;
 use App\Http\Controllers\Api\OrderController;
 use App\Http\Controllers\Api\PaymentController;
 use App\Http\Controllers\Api\ProfileController;
 use App\Http\Controllers\Api\ReferenceController;
+use App\Http\Controllers\Api\ShopController;
 use App\Http\Controllers\Api\VoiceNoteController;
 use App\Http\Middleware\EnsureAccountIsActive;
 use Illuminate\Support\Facades\Route;
@@ -33,6 +35,7 @@ Route::prefix('v1')->group(function () {
 
         Route::get('orders', [OrderController::class, 'index']);
         Route::post('orders', [OrderController::class, 'store']);
+        Route::post('courier-requests', [OrderController::class, 'storeCourierRequest']);
         Route::get('orders/{order}', [OrderController::class, 'show']);
         Route::get('orders/{order}/voice', [OrderController::class, 'voice']);
         Route::post('orders/{order}/accept-price', [OrderController::class, 'acceptPrice']);
@@ -44,6 +47,15 @@ Route::prefix('v1')->group(function () {
         Route::get('payments', [PaymentController::class, 'index']);
         Route::get('payments/{payment}', [PaymentController::class, 'show']);
         Route::get('payments/{payment}/receipt', [PaymentController::class, 'receipt']);
+
+        Route::get('ads', [AdController::class, 'index']);
+        Route::get('ads/mine', [AdController::class, 'mine']);
+        Route::post('ads', [AdController::class, 'store'])->middleware('throttle:10,1');
+        Route::delete('ads/{ad}', [AdController::class, 'destroy']);
+        Route::get('ads/{ad}/image', [AdController::class, 'image']);
+
+        Route::get('shops', [ShopController::class, 'index']);
+        Route::get('shops/{shop}/image', [ShopController::class, 'image']);
 
         Route::get('courier/deliveries', [CourierController::class, 'index']);
         Route::post('courier/deliveries/{order}/start', [CourierController::class, 'start']);

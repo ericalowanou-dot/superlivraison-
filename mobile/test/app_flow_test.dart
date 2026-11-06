@@ -106,6 +106,14 @@ class FakeServer {
           'data': <Object>[],
           'meta': {'current_page': 1, 'last_page': 1},
         });
+      case '/ads':
+      case '/shops':
+        return _ok({
+          'data': <Object>[],
+          'meta': {'current_page': 1, 'last_page': 1},
+        });
+      case '/courier-requests':
+        return _ok(orderJson(), 201);
       case '/orders/7':
         return _ok(orderJson());
       case '/orders/7/accept-price':
@@ -152,6 +160,10 @@ void main() {
     expect(find.text('Où êtes-vous ?'), findsOneWidget);
 
     await tap(tester, 'Commencer');
+    expect(find.text('Téléphone du destinataire'), findsOneWidget);
+    expect(find.byType(NavigationDestination), findsNWidgets(4));
+
+    await tap(tester, 'Commandes');
     expect(find.text('Mes commandes'), findsOneWidget);
     expect(server.calls['/me'], {'language_code': 'fr', 'city_id': 1});
   }

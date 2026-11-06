@@ -9,6 +9,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Resources\OrderResource;
 use App\Models\Order;
 use App\Services\OrderWorkflow;
+use App\Support\Phone;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
@@ -16,6 +17,7 @@ use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class OrderController extends Controller
@@ -28,7 +30,9 @@ class OrderController extends Controller
             ->when($request->boolean('to_pay'), fn ($query) => $query
                 ->where('status', OrderStatus::Confirmed)
                 ->where('payment_mode', PaymentMode::MobileMoney)
-                ->whereNull('paid_at'));
+                ->whereNull('paid_at'))
+            ->when($request->query('kind') === 'courier', fn ($query) => $query->where('channel', OrderChannel::Courier))
+            ->when($request->query('kind') === 'goods', fn ($query) => $query->where('channel', '!=', OrderChannel::Courier));
 
         return OrderResource::collection($orders->paginate(20));
     }
@@ -49,6 +53,38 @@ class OrderController extends Controller
         $order = $this->workflow->create($request->user(), [
             ...$data,
             'channel' => empty($data['voice_note_id']) ? OrderChannel::Text : OrderChannel::Voice,
+        ]);
+
+        return (new OrderResource($order->refresh()))->response()->setStatusCode($order->wasRecentlyCreated ? 201 : 200);
+    }
+
+    /** Solliciter un livreur : le prix et l'affectation suivent le même circuit qu'une commande. */
+    public function storeCourierRequest(Request $request): JsonResponse
+    {
+        Gate::authorize('create', Order::class);
+
+        $data = $request->validate([
+            'client_uuid' => ['required', 'uuid'],
+            'recipient_phone' => ['required', 'string', 'max:30'],
+            'delivery_lat' => ['required', 'numeric', 'between:-90,90'],
+            'delivery_lng' => ['required', 'numeric', 'between:-180,180'],
+            'delivery_landmark' => ['nullable', 'string', 'max:255'],
+            'details' => ['nullable', 'string', 'max:1000'],
+        ]);
+
+        $phone = Phone::normalize($data['recipient_phone']);
+        if ($phone === null) {
+            throw ValidationException::withMessages(['recipient_phone' => 'Indiquez un numéro au format +22890000000.']);
+        }
+
+        $order = $this->workflow->create($request->user(), [
+            'client_uuid' => $data['client_uuid'],
+            'channel' => OrderChannel::Courier,
+            'request_text' => $data['details'] ?? "Course vers {$phone}",
+            'recipient_phone' => $phone,
+            'delivery_lat' => $data['delivery_lat'],
+            'delivery_lng' => $data['delivery_lng'],
+            'delivery_landmark' => $data['delivery_landmark'] ?? 'Position indiquée sur la carte',
         ]);
 
         return (new OrderResource($order->refresh()))->response()->setStatusCode($order->wasRecentlyCreated ? 201 : 200);
@@ -95,8 +131,9 @@ class OrderController extends Controller
 
         $copy = $this->workflow->create($request->user(), [
             'client_uuid' => (string) Str::uuid(),
-            'channel' => OrderChannel::Text,
+            'channel' => $order->channel === OrderChannel::Courier ? OrderChannel::Courier : OrderChannel::Text,
             'request_text' => $order->request_text,
+            'recipient_phone' => $order->recipient_phone,
             'delivery_lat' => $order->delivery_lat,
             'delivery_lng' => $order->delivery_lng,
             'delivery_landmark' => $order->delivery_landmark,

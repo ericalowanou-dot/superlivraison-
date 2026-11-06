@@ -110,6 +110,22 @@ class _CourierScreenState extends State<CourierScreen> {
         const SizedBox(height: 6),
         Muted('Repère : ${order.landmark}', size: 13),
         if (collect) Muted('À encaisser : ${order.price} FCFA', size: 13),
+        if (order.recipientPhone != null) ...[
+          const SizedBox(height: 8),
+          OutlinedButton.icon(
+            icon: const Icon(Icons.call_outlined, size: 20),
+            label: Text('Appeler ${order.recipientPhone}'),
+            onPressed: () => callPhone(context, order.recipientPhone!),
+          ),
+        ],
+        if (order.lat != null && order.lng != null) ...[
+          const SizedBox(height: 8),
+          OutlinedButton.icon(
+            icon: const Icon(Icons.place_outlined, size: 20),
+            label: const Text('Voir sur la carte'),
+            onPressed: () => openMap(context, order.lat!, order.lng!),
+          ),
+        ],
         const SizedBox(height: 10),
         if (order.status == 'preparing')
           BusyButton(label: 'Démarrer la livraison', busy: _busy, onPressed: () => _act('/courier/deliveries/${order.id}/start')),

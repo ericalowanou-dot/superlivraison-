@@ -23,6 +23,8 @@ class OrderInfolist
                         ->visible(fn (Order $record) => $record->voice_note_id !== null),
                 ]),
                 Section::make('Livraison')->columns(2)->schema([
+                    TextEntry::make('recipient_phone')->label('Téléphone du destinataire')
+                        ->visible(fn (Order $record) => $record->recipient_phone !== null),
                     TextEntry::make('delivery_landmark')->label('Repère'),
                     TextEntry::make('map')->label('Position')
                         ->state(fn (Order $record) => $record->delivery_lat === null ? 'Non indiquée' : 'Voir sur la carte')

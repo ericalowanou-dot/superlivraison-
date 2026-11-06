@@ -36,7 +36,7 @@ flutter test
 
 - `lib/api` : appels à l'API et messages d'erreur
 - `lib/state` : session et file des demandes en attente de réseau
-- `lib/screens` : écrans
+- `lib/screens` : écrans (Livreur, Commandes, Publicités, Boutiques)
 - `lib/theme.dart` : couleurs des maquettes, thèmes clair et sombre
 
 Sans réseau, une demande reste sur le téléphone et repart toute seule, avec le même identifiant pour éviter un doublon.
