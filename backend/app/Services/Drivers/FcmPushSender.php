@@ -46,7 +46,8 @@ class FcmPushSender implements PushSender
                     'data' => array_map('strval', $data),
                     'android' => [
                         'priority' => 'high',
-                        'notification' => ['sound' => 'default'],
+                        // Canal prioritaire créé par l'appli : bandeau en haut de l'écran.
+                        'notification' => ['sound' => 'default', 'channel_id' => 'superlivraison'],
                     ],
                     'apns' => [
                         'headers' => ['apns-priority' => '10'],

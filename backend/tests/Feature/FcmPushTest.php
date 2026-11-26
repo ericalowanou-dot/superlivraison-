@@ -63,6 +63,7 @@ class FcmPushTest extends TestCase
             && $request->hasHeader('Authorization', 'Bearer jeton-google')
             && $request['message']['token'] === 'telephone-1'
             && $request['message']['notification']['body'] === 'Je suis au portail'
+            && $request['message']['android']['notification']['channel_id'] === 'superlivraison'
             && $request['message']['data'] === ['kind' => 'message', 'order_id' => '12']);
     }
 
