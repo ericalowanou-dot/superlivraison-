@@ -28,6 +28,7 @@ class MessageController extends Controller
         $user = $request->user();
 
         $messages = $order->messages()
+            ->with('call')
             ->when(isset($data['after_id']), fn ($query) => $query->where('id', '>', $data['after_id']))
             ->latest('id')
             ->limit(200)

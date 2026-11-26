@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 /** Un message de la discussion entre le client et le livreur d'une course. */
 class Message extends Model
 {
-    protected $fillable = ['client_uuid', 'sender_id', 'type', 'body', 'path', 'duration_seconds', 'lat', 'lng'];
+    protected $fillable = ['client_uuid', 'sender_id', 'call_id', 'type', 'body', 'path', 'duration_seconds', 'lat', 'lng'];
 
     protected function casts(): array
     {
@@ -26,6 +26,11 @@ class Message extends Model
     public function order(): BelongsTo
     {
         return $this->belongsTo(Order::class);
+    }
+
+    public function call(): BelongsTo
+    {
+        return $this->belongsTo(Call::class);
     }
 
     public function sender(): BelongsTo

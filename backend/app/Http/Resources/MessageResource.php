@@ -22,6 +22,12 @@ class MessageResource extends JsonResource
             'lng' => $this->lng,
             'delivered_at' => $this->delivered_at,
             'read_at' => $this->read_at,
+            'call' => $this->call_id === null ? null : [
+                'id' => $this->call->id,
+                'video' => $this->call->video,
+                'status' => $this->call->status,
+                'duration_seconds' => $this->call->durationSeconds(),
+            ],
             'created_at' => $this->created_at,
         ];
     }

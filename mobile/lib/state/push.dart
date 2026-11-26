@@ -5,6 +5,7 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
 
 import '../api/api_client.dart';
+import 'calls.dart';
 
 /// Ce que contient une notification : de quoi ouvrir le bon écran.
 class PushTarget {
@@ -18,6 +19,23 @@ class PushTarget {
   final String? reference, title, body;
 
   bool get isMessage => kind == 'message';
+}
+
+/// Message silencieux reçu appli fermée : faire sonner un appel, ou arrêter la sonnerie.
+@pragma('vm:entry-point')
+Future<void> firebaseBackgroundHandler(RemoteMessage message) async {
+  final kind = message.data['kind'];
+  if (kind != 'call' && kind != 'call_ended') return;
+
+  final options = Push.options;
+  if (options != null && Firebase.apps.isEmpty) await Firebase.initializeApp(options: options);
+
+  if (kind == 'call') {
+    await showIncomingCall(message.data);
+  } else {
+    final callId = int.tryParse('${message.data['call_id']}');
+    if (callId != null) await stopRinging(callId);
+  }
 }
 
 /// Notifications du téléphone par Firebase Cloud Messaging.
@@ -43,6 +61,9 @@ class Push {
   /// Notification touchée par l'utilisateur : ouvrir l'écran concerné.
   void Function(PushTarget target)? onOpen;
 
+  /// Message silencieux reçu appli ouverte (appel qui sonne, appel annulé).
+  void Function(Map<String, dynamic> data)? onData;
+
   bool _ready = false;
   String? _token;
   PushTarget? _pendingOpen;
@@ -51,7 +72,7 @@ class Push {
   /// Le jeton de ce téléphone, envoyé à la déconnexion pour couper ses notifications.
   String? get token => _token;
 
-  static FirebaseOptions? get _options {
+  static FirebaseOptions? get options {
     if (kIsWeb || _projectId.isEmpty || _senderId.isEmpty) return null;
 
     return switch (defaultTargetPlatform) {
@@ -73,14 +94,21 @@ class Push {
   }
 
   Future<void> init() async {
-    final options = _options;
+    final options = Push.options;
     if (options == null) return;
 
     try {
       await Firebase.initializeApp(options: options);
       _ready = true;
 
-      FirebaseMessaging.onMessage.listen((m) => onForeground?.call(_target(m)));
+      FirebaseMessaging.onBackgroundMessage(firebaseBackgroundHandler);
+      FirebaseMessaging.onMessage.listen((m) {
+        if (m.notification == null) {
+          onData?.call(m.data);
+        } else {
+          onForeground?.call(_target(m));
+        }
+      });
       FirebaseMessaging.onMessageOpenedApp.listen((m) => _open(_target(m)));
 
       // L'application a été lancée en touchant une notification.

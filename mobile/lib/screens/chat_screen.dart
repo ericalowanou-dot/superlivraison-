@@ -16,6 +16,7 @@ import '../models.dart';
 import '../state/session.dart';
 import '../theme.dart';
 import '../widgets.dart';
+import 'call_screen.dart';
 
 /// Discussion en direct entre le client et le livreur d'une course :
 /// texte, vocal, photo, position, avec accusés de réception et de lecture.
@@ -502,11 +503,25 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
           ],
         ),
         actions: [
-          if (peer?.phone != null)
+          if (_canSend) ...[
             IconButton(
-              tooltip: 'Appeler',
+              tooltip: 'Appel vidéo',
+              icon: const Icon(Icons.videocam_outlined),
+              onPressed: () => startCall(context, orderId: widget.orderId, video: true),
+            ),
+            IconButton(
+              tooltip: 'Appel vocal',
               icon: const Icon(Icons.call_outlined),
-              onPressed: () => callPhone(context, peer!.phone!),
+              onPressed: () => startCall(context, orderId: widget.orderId, video: false),
+            ),
+          ],
+          if (peer?.phone != null)
+            PopupMenuButton<String>(
+              tooltip: 'Plus',
+              onSelected: (_) => callPhone(context, peer!.phone!),
+              itemBuilder: (_) => const [
+                PopupMenuItem(value: 'phone', child: Text('Appel téléphonique classique')),
+              ],
             ),
         ],
       ),
@@ -610,7 +625,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
                       if (message.state == SendState.failed)
                         Text('Non envoyé · toucher pour renvoyer  ', style: TextStyle(fontSize: 11, color: mine ? Palette.onSky : p.warn)),
                       Text(_time(message.createdAt), style: TextStyle(fontSize: 11, color: fg.withValues(alpha: 0.7))),
-                      if (mine) ...[const SizedBox(width: 4), _ticks(message, fg)],
+                      if (mine && message.type != 'call') ...[const SizedBox(width: 4), _ticks(message, fg)],
                     ],
                   ),
                 ),
@@ -705,9 +720,67 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
           ),
         );
 
+      case 'call':
+        return _callContent(message, fg);
+
       default:
         return Text(message.body ?? '', style: TextStyle(fontSize: 15, color: fg));
     }
+  }
+
+  /// « Appel vidéo sortant · 2 min 14 », « Appel vocal manqué »… Toucher pour rappeler.
+  Widget _callContent(ChatMessage message, Color fg) {
+    final call = message.call;
+    final mine = message.senderId == _me;
+    final video = call?.video ?? false;
+    final kind = video ? 'Appel vidéo' : 'Appel vocal';
+    final missed = !mine && call?.status == 'missed';
+
+    final (String title, IconData arrow) = switch (call?.status) {
+      'ended' => (mine ? '$kind sortant' : '$kind entrant', mine ? Icons.call_made : Icons.call_received),
+      'declined' => ('$kind refusé', mine ? Icons.call_made : Icons.call_received),
+      'missed' => (mine ? '$kind · Sans réponse' : '$kind manqué', mine ? Icons.call_made : Icons.call_missed),
+      _ => (kind, Icons.call),
+    };
+    final seconds = call?.durationSeconds;
+    final subtitle = call?.status == 'ended' && seconds != null ? _callLength(seconds) : 'Toucher pour rappeler';
+
+    return InkWell(
+      onTap: _canSend ? () => startCall(context, orderId: widget.orderId, video: video) : null,
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          CircleAvatar(
+            radius: 18,
+            backgroundColor: fg.withValues(alpha: 0.15),
+            child: Icon(video ? Icons.videocam : Icons.call, size: 20, color: missed ? Palette.of(context).warn : fg),
+          ),
+          const SizedBox(width: 10),
+          Flexible(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(title, style: TextStyle(fontWeight: FontWeight.w700, color: missed ? Palette.of(context).warn : fg)),
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(arrow, size: 14, color: missed ? Palette.of(context).warn : fg.withValues(alpha: 0.75)),
+                    const SizedBox(width: 4),
+                    Text(subtitle, style: TextStyle(fontSize: 12, color: fg.withValues(alpha: 0.75))),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  static String _callLength(int seconds) {
+    if (seconds < 60) return '$seconds s';
+    final m = seconds ~/ 60, s = seconds % 60;
+    return s == 0 ? '$m min' : '$m min ${s.toString().padLeft(2, '0')}';
   }
 
   void _showImage(Widget image) {

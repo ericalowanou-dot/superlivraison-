@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Api\AdController;
 use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\Api\CallController;
 use App\Http\Controllers\Api\CourierController;
 use App\Http\Controllers\Api\MessageController;
 use App\Http\Controllers\Api\MyShopController;
@@ -53,6 +54,11 @@ Route::prefix('v1')->group(function () {
         Route::post('orders/{order}/messages/receipt', [MessageController::class, 'receipt']);
         Route::post('orders/{order}/typing', [MessageController::class, 'typing'])->middleware('throttle:60,1');
         Route::get('messages/{message}/media', [MessageController::class, 'media']);
+
+        Route::post('orders/{order}/calls', [CallController::class, 'store'])->middleware('throttle:20,1');
+        Route::get('calls/{call}', [CallController::class, 'show']);
+        Route::post('calls/{call}/accept', [CallController::class, 'accept']);
+        Route::post('calls/{call}/end', [CallController::class, 'end']);
 
         Route::get('payments', [PaymentController::class, 'index']);
         Route::get('payments/{payment}', [PaymentController::class, 'show']);

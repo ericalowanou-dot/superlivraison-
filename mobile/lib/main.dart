@@ -7,6 +7,7 @@ import 'screens/home_shell.dart';
 import 'screens/login_screen.dart';
 import 'screens/order_screen.dart';
 import 'screens/setup_screen.dart';
+import 'state/calls.dart';
 import 'state/outbox.dart';
 import 'state/push.dart';
 import 'state/session.dart';
@@ -25,17 +26,21 @@ Future<void> main() async {
   await session.restore();
   await outbox.load();
   await push.init();
-  _wirePush(session, push);
+  final calls = CallManager(api, _navigator);
+  await calls.init();
+  _wirePush(session, push, calls);
   runApp(App(session: session, outbox: outbox));
 }
 
 /// Branche les notifications sur la session : enregistrement à la connexion, ouverture au toucher.
-void _wirePush(Session session, Push push) {
+void _wirePush(Session session, Push push, CallManager calls) {
   var registered = false;
   void sync() {
     if (session.user != null && !registered) {
       registered = true;
-      push.register();
+      push.register().then((_) => calls.requestPermissions());
+      // Appel décroché sur l'écran de sonnerie pendant que l'appli était fermée.
+      calls.resumeAccepted();
     } else if (session.user == null) {
       registered = false;
     }
@@ -45,6 +50,7 @@ void _wirePush(Session session, Push push) {
   sync();
 
   push.onOpen = (target) => _openTarget(session, target);
+  push.onData = calls.onPushData;
   push.onForeground = (target) {
     // Déjà dans cette discussion : le message s'affiche à l'écran, inutile de le signaler.
     if (target.isMessage && target.orderId == ChatScreen.visibleOrderId) return;

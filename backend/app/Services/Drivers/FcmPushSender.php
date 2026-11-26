@@ -36,24 +36,42 @@ class FcmPushSender implements PushSender
 
     public function send(string $token, string $title, string $body, array $data = []): void
     {
+        $this->post($token, [
+            'notification' => ['title' => $title, 'body' => $body],
+            // Les valeurs doivent être des chaînes pour Firebase.
+            'data' => array_map('strval', $data),
+            'android' => [
+                'priority' => 'high',
+                // Canal prioritaire créé par l'appli : bandeau en haut de l'écran.
+                'notification' => ['sound' => 'default', 'channel_id' => 'superlivraison'],
+            ],
+            'apns' => [
+                'headers' => ['apns-priority' => '10'],
+                'payload' => ['aps' => ['sound' => 'default']],
+            ],
+        ]);
+    }
+
+    public function sendData(string $token, array $data, int $ttlSeconds = 60): void
+    {
+        // Sans « notification », Android réveille l'appli même fermée pour qu'elle affiche l'appel.
+        $this->post($token, [
+            'data' => array_map('strval', $data),
+            'android' => ['priority' => 'high', 'ttl' => $ttlSeconds.'s'],
+            'apns' => [
+                'headers' => ['apns-priority' => '5', 'apns-push-type' => 'background'],
+                'payload' => ['aps' => ['content-available' => 1]],
+            ],
+        ]);
+    }
+
+    /** @param array<string, mixed> $message */
+    private function post(string $token, array $message): void
+    {
         $response = Http::withToken($this->accessToken())
             ->timeout(10)
             ->post("https://fcm.googleapis.com/v1/projects/{$this->account['project_id']}/messages:send", [
-                'message' => [
-                    'token' => $token,
-                    'notification' => ['title' => $title, 'body' => $body],
-                    // Les valeurs doivent être des chaînes pour Firebase.
-                    'data' => array_map('strval', $data),
-                    'android' => [
-                        'priority' => 'high',
-                        // Canal prioritaire créé par l'appli : bandeau en haut de l'écran.
-                        'notification' => ['sound' => 'default', 'channel_id' => 'superlivraison'],
-                    ],
-                    'apns' => [
-                        'headers' => ['apns-priority' => '10'],
-                        'payload' => ['aps' => ['sound' => 'default']],
-                    ],
-                ],
+                'message' => ['token' => $token, ...$message],
             ]);
 
         if ($response->successful()) {

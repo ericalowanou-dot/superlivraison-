@@ -30,4 +30,13 @@ return [
 
     'shop_commission_percent' => (int) env('SHOP_COMMISSION_PERCENT', 10),
     'voice_max_kb' => 15360,
+
+    // Appels audio et vidéo (ZEGOCLOUD). Le ServerSecret reste sur le serveur : l'appli reçoit un jeton.
+    'zego' => [
+        'app_id' => (int) env('ZEGO_APP_ID', 0),
+        'server_secret' => env('ZEGO_SERVER_SECRET', ''),
+        'token_ttl_seconds' => 4 * 3600,
+    ],
+    // Sans réponse après ce délai, l'appel est noté comme manqué.
+    'call_ring_seconds' => 45,
 ];

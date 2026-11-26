@@ -139,6 +139,7 @@ class ChatMessage {
     this.deliveredAt,
     this.readAt,
     this.localPath,
+    this.call,
     this.state = SendState.sent,
   });
 
@@ -156,6 +157,7 @@ class ChatMessage {
         readAt = _date(j['read_at']),
         createdAt = _date(j['created_at']) ?? DateTime.now(),
         localPath = null,
+        call = j['call'] == null ? null : CallSummary.fromJson(j['call'] as Map<String, dynamic>),
         state = SendState.sent;
 
   int? id;
@@ -170,6 +172,9 @@ class ChatMessage {
 
   /// Fichier encore sur le téléphone : vocal ou photo pas encore envoyé.
   String? localPath;
+
+  /// Pour un message de type « call » : le résultat de l'appel.
+  final CallSummary? call;
   SendState state;
 
   bool get isPending => state != SendState.sent;
@@ -190,6 +195,18 @@ class ChatMessage {
 enum SendState { sending, failed, sent }
 
 /// La personne de l'autre côté de la discussion.
+/// Un appel noté dans la discussion.
+class CallSummary {
+  CallSummary.fromJson(Map<String, dynamic> j)
+      : video = j['video'] as bool,
+        status = j['status'] as String,
+        durationSeconds = j['duration_seconds'] as int?;
+
+  final bool video;
+  final String status;
+  final int? durationSeconds;
+}
+
 class ChatPeer {
   ChatPeer.fromJson(Map<String, dynamic> j)
       : id = j['id'] as int,

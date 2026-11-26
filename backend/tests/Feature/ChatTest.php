@@ -177,6 +177,8 @@ class ChatTest extends TestCase
             {
                 $this->sent[] = compact('token', 'title', 'body', 'data');
             }
+
+            public function sendData(string $token, array $data, int $ttlSeconds = 60): void {}
         };
         $this->app->instance(PushSender::class, $push);
 

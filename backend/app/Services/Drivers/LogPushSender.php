@@ -12,4 +12,9 @@ class LogPushSender implements PushSender
     {
         Log::info('Notification simulée', compact('title', 'body', 'data'));
     }
+
+    public function sendData(string $token, array $data, int $ttlSeconds = 60): void
+    {
+        Log::info('Message silencieux simulé', compact('data'));
+    }
 }

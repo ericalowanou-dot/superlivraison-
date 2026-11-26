@@ -2,16 +2,19 @@
 
 namespace App\Services;
 
+use App\Enums\MessageType;
 use App\Enums\OrderStatus;
 use App\Events\ChatEvent;
 use App\Exceptions\WorkflowException;
 use App\Http\Resources\MessageResource;
 use App\Jobs\SendMessagePush;
+use App\Models\Call;
 use App\Models\Message;
 use App\Models\Order;
 use App\Models\User;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 use Throwable;
 
 /**
@@ -79,6 +82,27 @@ class Chat
         }
 
         return $message;
+    }
+
+    /** Note un appel terminé dans l'historique de la discussion. */
+    public function recordCall(Call $call): Message
+    {
+        $message = $call->order->messages()->create([
+            'client_uuid' => (string) Str::uuid(),
+            'sender_id' => $call->caller_id,
+            'call_id' => $call->id,
+            'type' => MessageType::Call,
+        ]);
+
+        $this->broadcast($call->order, 'message.sent', ['message' => (new MessageResource($message->load('call')))->resolve()]);
+
+        return $message;
+    }
+
+    /** @param array<string, mixed> $payload */
+    public function broadcastCall(Call $call, string $name, array $payload): void
+    {
+        $this->broadcast($call->order, $name, $payload);
     }
 
     /**

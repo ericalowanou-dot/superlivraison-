@@ -8,6 +8,7 @@ enum MessageType: string
     case Voice = 'voice';
     case Image = 'image';
     case Location = 'location';
+    case Call = 'call';
 
     /** Le résumé affiché dans la notification du téléphone. */
     public function preview(?string $body): string
@@ -17,6 +18,7 @@ enum MessageType: string
             self::Voice => 'Message vocal',
             self::Image => 'Photo',
             self::Location => 'Position partagée',
+            self::Call => 'Appel',
         };
     }
 }

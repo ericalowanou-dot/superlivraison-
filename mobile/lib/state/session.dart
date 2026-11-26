@@ -15,6 +15,9 @@ class Session extends ChangeNotifier {
   static const _tokenKey = 'token';
   static const _themeKey = 'theme';
 
+  /// Le jeton de connexion enregistré, lu hors de l'interface (sonnerie d'appel appli fermée).
+  static Future<String?> storedToken() => _storage.read(key: _tokenKey);
+
   final ApiClient api;
 
   AppUser? user;
