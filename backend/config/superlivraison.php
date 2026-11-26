@@ -12,6 +12,8 @@ return [
     'transcriber_driver' => env('TRANSCRIBER_DRIVER', 'fake'),
     'payment_driver' => env('PAYMENT_DRIVER', 'fake'),
     'fake_payment_secret' => env('FAKE_PAYMENT_SECRET', 'dev-secret'),
+    // Paiement simulé : success (accepté), failure (refusé) ou manual (attend un webhook signé).
+    'fake_payment_result' => env('FAKE_PAYMENT_RESULT', 'success'),
 
     'otp' => [
         'length' => 6,

@@ -8,10 +8,12 @@ use App\Enums\PaymentMethod;
 use App\Enums\PaymentMode;
 use App\Enums\PaymentStatus;
 use App\Exceptions\WorkflowException;
+use App\Jobs\SimulatePaymentResult;
 use App\Models\Order;
 use App\Models\Payment;
 use App\Models\User;
 use App\Notifications\AppEvent;
+use App\Services\Drivers\FakePaymentGateway;
 use App\Support\WebhookResult;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -66,6 +68,12 @@ class PaymentService
             ? ['provider_reference' => $result->providerReference]
             : ['status' => PaymentStatus::Failed, 'failure_reason' => $result->failureReason]
         )->save();
+
+        // Paiement simulé (tests) : le résultat arrive tout seul après quelques secondes.
+        $simulated = config('superlivraison.fake_payment_result');
+        if ($result->accepted && $this->gateway instanceof FakePaymentGateway && in_array($simulated, ['success', 'failure'], true)) {
+            SimulatePaymentResult::dispatch($payment->id, $simulated === 'success')->delay(now()->addSeconds(5));
+        }
 
         return $payment;
     }
