@@ -24,6 +24,12 @@ Dans un navigateur :
 flutter run -d chrome --dart-define=API_URL=http://localhost:8010/api/v1
 ```
 
+La discussion en direct se branche sur le serveur `reverb:start` de l'ordinateur de l'API, port 8080. Pour un autre port ou une autre adresse :
+
+```bash
+flutter run --dart-define=API_URL=http://10.0.2.2:8010/api/v1 --dart-define=REVERB_URL=ws://10.0.2.2:6001
+```
+
 En local, le code de connexion se lit dans `backend/storage/logs/laravel.log`.
 
 ## Tests

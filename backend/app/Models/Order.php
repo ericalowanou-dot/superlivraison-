@@ -81,6 +81,11 @@ class Order extends Model
         return $this->hasMany(Payment::class);
     }
 
+    public function messages(): HasMany
+    {
+        return $this->hasMany(Message::class);
+    }
+
     public function isPaid(): bool
     {
         return $this->paid_at !== null;

@@ -93,6 +93,8 @@ class Order {
         paymentMode = j['payment_mode'] as String?,
         isPaid = j['is_paid'] as bool,
         cancelReason = j['cancel_reason'] as String?,
+        hasCourier = j['has_courier'] as bool? ?? false,
+        unreadMessages = j['unread_messages'] as int? ?? 0,
         createdAt = DateTime.parse(j['created_at'] as String).toLocal(),
         events = ((j['events'] as List?) ?? const [])
             .map((e) => OrderEvent.fromJson(e as Map<String, dynamic>))
@@ -100,7 +102,8 @@ class Order {
 
   final int id;
   final String reference, requestText, channel, landmark, status, statusLabel;
-  final bool hasVoice, isPaid;
+  final bool hasVoice, isPaid, hasCourier;
+  final int unreadMessages;
   final int? price, goodsTotal, deliveryFee;
   final String? paymentMode, cancelReason, recipientPhone, shopName, shopPhone, shopLandmark;
   final List<OrderItem> items;
@@ -113,6 +116,91 @@ class Order {
   bool get isCancelled => status == 'cancelled';
   bool get canCancel => status == 'received' || status == 'price_pending';
   bool get isShopOrder => channel == 'shop';
+
+  /// La discussion avec le livreur s'ouvre dès qu'il est affecté.
+  bool get hasChat => hasCourier;
+}
+
+/// Un message de la discussion d'une course.
+///
+/// Un message en cours d'envoi n'a pas encore d'[id] : il se reconnaît à son [clientUuid].
+class ChatMessage {
+  ChatMessage({
+    required this.clientUuid,
+    required this.senderId,
+    required this.type,
+    required this.createdAt,
+    this.id,
+    this.body,
+    this.hasMedia = false,
+    this.durationSeconds,
+    this.lat,
+    this.lng,
+    this.deliveredAt,
+    this.readAt,
+    this.localPath,
+    this.state = SendState.sent,
+  });
+
+  ChatMessage.fromJson(Map<String, dynamic> j)
+      : id = j['id'] as int,
+        clientUuid = j['client_uuid'] as String,
+        senderId = j['sender_id'] as int,
+        type = j['type'] as String,
+        body = j['body'] as String?,
+        hasMedia = j['has_media'] as bool? ?? false,
+        durationSeconds = j['duration_seconds'] as int?,
+        lat = (j['lat'] as num?)?.toDouble(),
+        lng = (j['lng'] as num?)?.toDouble(),
+        deliveredAt = _date(j['delivered_at']),
+        readAt = _date(j['read_at']),
+        createdAt = _date(j['created_at']) ?? DateTime.now(),
+        localPath = null,
+        state = SendState.sent;
+
+  int? id;
+  final String clientUuid, type;
+  final int senderId;
+  final String? body;
+  bool hasMedia;
+  final int? durationSeconds;
+  final double? lat, lng;
+  DateTime? deliveredAt, readAt;
+  DateTime createdAt;
+
+  /// Fichier encore sur le téléphone : vocal ou photo pas encore envoyé.
+  String? localPath;
+  SendState state;
+
+  bool get isPending => state != SendState.sent;
+
+  /// Reprend l'état du serveur sans perdre le fichier local déjà enregistré.
+  void absorb(ChatMessage server) {
+    id = server.id;
+    hasMedia = server.hasMedia;
+    createdAt = server.createdAt;
+    deliveredAt ??= server.deliveredAt;
+    readAt ??= server.readAt;
+    state = SendState.sent;
+  }
+
+  static DateTime? _date(dynamic value) => value is String ? DateTime.parse(value).toLocal() : null;
+}
+
+enum SendState { sending, failed, sent }
+
+/// La personne de l'autre côté de la discussion.
+class ChatPeer {
+  ChatPeer.fromJson(Map<String, dynamic> j)
+      : id = j['id'] as int,
+        name = j['name'] as String,
+        phone = j['phone'] as String?,
+        isCourier = j['is_courier'] as bool;
+
+  final int id;
+  final String name;
+  final String? phone;
+  final bool isCourier;
 }
 
 class Ad {

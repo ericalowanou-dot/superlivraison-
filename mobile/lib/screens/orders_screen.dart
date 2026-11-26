@@ -155,7 +155,16 @@ class OrderCard extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(order.reference, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700)),
-              StatusBadge(order.statusLabel, action: order.awaitsPrice || order.awaitsMobilePayment),
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  if (order.unreadMessages > 0) ...[
+                    Badge(label: Text('${order.unreadMessages}'), child: const Icon(Icons.chat_bubble_outline, size: 18)),
+                    const SizedBox(width: 10),
+                  ],
+                  StatusBadge(order.statusLabel, action: order.awaitsPrice || order.awaitsMobilePayment),
+                ],
+              ),
             ],
           ),
           const SizedBox(height: 6),

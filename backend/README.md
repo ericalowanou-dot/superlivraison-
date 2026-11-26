@@ -14,11 +14,14 @@ php artisan key:generate
 php artisan migrate --seed
 php artisan serve
 php artisan queue:work
+php artisan reverb:start
 ```
 
 Renseignez `ADMIN_EMAIL` et `ADMIN_PASSWORD` dans `.env` avant `migrate --seed` pour créer le premier administrateur.
 
 `queue:work` envoie les notifications et lance les retranscriptions.
+
+`reverb:start` fait tourner la discussion en direct entre le client et le livreur, sur le port `REVERB_PORT` (8080 par défaut). Si ce port est pris, changez `REVERB_PORT` dans `.env` et lancez `php artisan reverb:start --port=6001` par exemple. Sans ce serveur, la discussion marche quand même : l'application relit les messages toutes les quelques secondes.
 
 ## Tests
 

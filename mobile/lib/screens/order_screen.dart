@@ -7,6 +7,7 @@ import '../models.dart';
 import '../state/session.dart';
 import '../theme.dart';
 import '../widgets.dart';
+import 'chat_screen.dart';
 import 'pay_screen.dart';
 
 class OrderScreen extends StatefulWidget {
@@ -211,6 +212,10 @@ class _OrderScreenState extends State<OrderScreen> {
         ],
         if (order.awaitsMobilePayment) ...[
           BusyButton(label: 'Payer ${money(order.price!)}', busy: _busy, onPressed: _pay),
+          gap,
+        ],
+        if (order.hasChat) ...[
+          ChatButton(order: order, label: 'Discuter avec le livreur', onReturn: _fetch),
           gap,
         ],
         if (order.isCancelled) ...[

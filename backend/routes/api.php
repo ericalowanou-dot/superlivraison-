@@ -3,6 +3,7 @@
 use App\Http\Controllers\Api\AdController;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\CourierController;
+use App\Http\Controllers\Api\MessageController;
 use App\Http\Controllers\Api\MyShopController;
 use App\Http\Controllers\Api\OrderController;
 use App\Http\Controllers\Api\PaymentController;
@@ -44,6 +45,12 @@ Route::prefix('v1')->group(function () {
         Route::post('orders/{order}/cancel', [OrderController::class, 'cancel']);
         Route::post('orders/{order}/reorder', [OrderController::class, 'reorder']);
         Route::post('orders/{order}/payments', [PaymentController::class, 'store']);
+
+        Route::get('orders/{order}/messages', [MessageController::class, 'index']);
+        Route::post('orders/{order}/messages', [MessageController::class, 'store'])->middleware('throttle:120,1');
+        Route::post('orders/{order}/messages/receipt', [MessageController::class, 'receipt']);
+        Route::post('orders/{order}/typing', [MessageController::class, 'typing'])->middleware('throttle:60,1');
+        Route::get('messages/{message}/media', [MessageController::class, 'media']);
 
         Route::get('payments', [PaymentController::class, 'index']);
         Route::get('payments/{payment}', [PaymentController::class, 'show']);
