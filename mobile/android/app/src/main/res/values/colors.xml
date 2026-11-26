@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Bleu du ciel du logo : fond de l'icône adaptative. -->
+    <color name="ic_launcher_background">#10B2FD</color>
+    <!-- Orange des flammes : teinte de la petite icône des notifications. -->
+    <color name="notification_color">#F03307</color>
+</resources>
