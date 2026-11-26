@@ -8,6 +8,7 @@ use App\Contracts\SmsSender;
 use App\Contracts\Transcriber;
 use App\Services\Drivers\FakePaymentGateway;
 use App\Services\Drivers\FakeTranscriber;
+use App\Services\Drivers\FcmPushSender;
 use App\Services\Drivers\LogPushSender;
 use App\Services\Drivers\LogSmsSender;
 use App\Support\Phone;
@@ -30,6 +31,7 @@ class AppServiceProvider extends ServiceProvider
 
         $this->app->singleton(PushSender::class, fn () => match ($this->driver('push_driver')) {
             'log' => new LogPushSender,
+            'fcm' => new FcmPushSender((string) config('superlivraison.firebase_credentials')),
             default => throw new RuntimeException('Fournisseur de notifications inconnu.'),
         });
 
@@ -64,6 +66,12 @@ class AppServiceProvider extends ServiceProvider
         });
 
         RateLimiter::for('otp-verify', fn (Request $request) => Limit::perMinute(10)->by('otp-verify:'.$request->ip()));
+
+        // Connexion et inscription : on freine les essais de mots de passe en série.
+        RateLimiter::for('auth', fn (Request $request) => [
+            Limit::perMinute(10)->by('auth-ip:'.$request->ip()),
+            Limit::perMinute(5)->by('auth-email:'.mb_strtolower((string) $request->input('email'))),
+        ]);
 
         RateLimiter::for('api', fn (Request $request) => Limit::perMinute(120)->by($request->user()?->id ?: $request->ip()));
     }

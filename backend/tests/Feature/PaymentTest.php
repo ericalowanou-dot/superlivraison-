@@ -55,6 +55,32 @@ class PaymentTest extends TestCase
         $this->assertSame(1, $order->restaurant->notifications()->where('data->title', 'Paiement réussi')->count());
     }
 
+    public function test_a_simulated_payment_succeeds_on_its_own(): void
+    {
+        config(['superlivraison.fake_payment_result' => 'success']);
+        $order = $this->confirmedOrder();
+
+        $id = $this->actingAs($order->restaurant)
+            ->postJson("/api/v1/orders/{$order->id}/payments", ['method' => 'flooz', 'phone' => '+22896000001'])
+            ->assertCreated()->json('id');
+
+        $this->getJson("/api/v1/payments/{$id}")->assertJsonPath('status', 'succeeded');
+        $this->assertTrue($order->fresh()->isPaid());
+    }
+
+    public function test_a_simulated_payment_can_be_refused(): void
+    {
+        config(['superlivraison.fake_payment_result' => 'failure']);
+        $order = $this->confirmedOrder();
+
+        $id = $this->actingAs($order->restaurant)
+            ->postJson("/api/v1/orders/{$order->id}/payments", ['method' => 'flooz', 'phone' => '+22896000001'])
+            ->assertCreated()->json('id');
+
+        $this->assertSame(PaymentStatus::Failed, Payment::find($id)->status);
+        $this->assertFalse($order->fresh()->isPaid());
+    }
+
     public function test_paid_orders_can_then_be_prepared(): void
     {
         $order = $this->confirmedOrder();

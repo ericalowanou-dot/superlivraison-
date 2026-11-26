@@ -5,6 +5,7 @@ import 'package:uuid/uuid.dart';
 import '../models.dart';
 import '../state/session.dart';
 import '../widgets.dart';
+import 'chat_screen.dart';
 import 'map_screen.dart';
 import 'order_screen.dart';
 import 'orders_screen.dart';
@@ -166,7 +167,16 @@ class _CourierRequestScreenState extends State<CourierRequestScreen> {
             for (final order in _requests)
               Padding(
                 padding: const EdgeInsets.only(bottom: 12),
-                child: OrderCard(order: order, onTap: () => _open(order)),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    OrderCard(order: order, onTap: () => _open(order)),
+                    if (order.hasChat) ...[
+                      const SizedBox(height: 6),
+                      ChatButton(order: order, label: 'Discuter avec le livreur', onReturn: _fetch),
+                    ],
+                  ],
+                ),
               ),
           ],
         ],

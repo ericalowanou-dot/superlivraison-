@@ -7,9 +7,13 @@ return [
      */
     'sms_driver' => env('SMS_DRIVER', 'log'),
     'push_driver' => env('PUSH_DRIVER', 'log'),
+    // Clé JSON d'un compte de service Firebase, pour PUSH_DRIVER=fcm.
+    'firebase_credentials' => env('FIREBASE_CREDENTIALS', storage_path('app/private/firebase.json')),
     'transcriber_driver' => env('TRANSCRIBER_DRIVER', 'fake'),
     'payment_driver' => env('PAYMENT_DRIVER', 'fake'),
     'fake_payment_secret' => env('FAKE_PAYMENT_SECRET', 'dev-secret'),
+    // Paiement simulé : success (accepté), failure (refusé) ou manual (attend un webhook signé).
+    'fake_payment_result' => env('FAKE_PAYMENT_RESULT', 'success'),
 
     'otp' => [
         'length' => 6,
@@ -26,4 +30,13 @@ return [
 
     'shop_commission_percent' => (int) env('SHOP_COMMISSION_PERCENT', 10),
     'voice_max_kb' => 15360,
+
+    // Appels audio et vidéo (ZEGOCLOUD). Le ServerSecret reste sur le serveur : l'appli reçoit un jeton.
+    'zego' => [
+        'app_id' => (int) env('ZEGO_APP_ID', 0),
+        'server_secret' => env('ZEGO_SERVER_SECRET', ''),
+        'token_ttl_seconds' => 4 * 3600,
+    ],
+    // Sans réponse après ce délai, l'appel est noté comme manqué.
+    'call_ring_seconds' => 45,
 ];

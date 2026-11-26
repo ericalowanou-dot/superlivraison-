@@ -43,3 +43,6 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+
+# Réglages Firebase propres à chaque projet (voir README).
+firebase.json

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../models.dart';
 import '../state/session.dart';
 import '../widgets.dart';
+import 'chat_screen.dart';
 
 /// Espace du livreur : ses livraisons en cours, sans les onglets du restaurant.
 class CourierScreen extends StatefulWidget {
@@ -122,6 +123,8 @@ class _CourierScreenState extends State<CourierScreen> {
         ],
         Muted('Repère : ${order.landmark}', size: 13),
         if (collect) Muted('À encaisser : ${order.price} FCFA', size: 13),
+        const SizedBox(height: 8),
+        ChatButton(order: order, label: 'Discuter avec le client', onReturn: _fetch),
         if (order.recipientPhone != null) ...[
           const SizedBox(height: 8),
           OutlinedButton.icon(

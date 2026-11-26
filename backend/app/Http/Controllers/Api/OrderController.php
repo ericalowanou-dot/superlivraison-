@@ -28,6 +28,7 @@ class OrderController extends Controller
     public function index(Request $request): AnonymousResourceCollection
     {
         $orders = $request->user()->orders()->latest('id')
+            ->withCount(['messages as unread_count' => fn ($query) => $query->where('sender_id', '!=', $request->user()->id)->whereNull('read_at')])
             ->when($request->boolean('to_pay'), fn ($query) => $query
                 ->where('status', OrderStatus::Confirmed)
                 ->where('payment_mode', PaymentMode::MobileMoney)

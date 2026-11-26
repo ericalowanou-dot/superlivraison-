@@ -75,7 +75,10 @@ class FakeServer {
       case '/auth/request-code':
         return _ok({'message': 'ok'}, 202);
       case '/auth/verify-code':
+      case '/auth/login':
         return _ok({'token': '1|jeton', 'user': userJson()});
+      case '/auth/register':
+        return _ok({'token': '1|jeton', 'user': userJson()}, 201);
       case '/reference':
         return _ok({
           'languages': [
@@ -152,12 +155,11 @@ void main() {
   }
 
   Future<void> signIn(WidgetTester tester) async {
-    await tester.enterText(find.byType(TextField), '+228 90 00 00 00');
-    await tap(tester, 'Recevoir le code');
-    expect(find.text('Entrez votre code'), findsOneWidget);
-
-    await tester.enterText(find.byType(TextField), '123456');
-    await tap(tester, 'Continuer');
+    expect(find.text('Tout ce dont vous avez besoin, livré chez vous'), findsOneWidget);
+    await tester.enterText(find.byType(TextField).at(0), 'ama@exemple.tg');
+    await tester.enterText(find.byType(TextField).at(1), 'motdepasse');
+    await tap(tester, 'Se connecter');
+    expect(server.calls['/auth/login'], {'email': 'ama@exemple.tg', 'password': 'motdepasse', 'device_name': 'application-mobile'});
     expect(find.text('Où êtes-vous ?'), findsOneWidget);
 
     await tap(tester, 'Commencer');
@@ -192,6 +194,32 @@ void main() {
     await tap(tester, 'Suivre ma commande');
     await tester.pageBack();
     await tester.pumpAndSettle();
+  });
+
+  testWidgets('un nouvel utilisateur crée son compte puis choisit sa ville', (tester) async {
+    await pumpApp(tester);
+    await tap(tester, 'Créer un compte');
+
+    final fields = find.byType(TextField);
+    await tester.enterText(fields.at(0), 'Ama Mensah');
+    await tester.enterText(fields.at(1), 'ama@exemple.tg');
+    await tester.enterText(fields.at(3), 'motdepasse');
+    await tester.enterText(fields.at(4), 'autrechose');
+    await tap(tester, 'Créer mon compte');
+    expect(find.text('Les deux mots de passe ne sont pas identiques.'), findsOneWidget);
+    expect(server.calls.containsKey('/auth/register'), isFalse);
+
+    await tester.enterText(fields.at(4), 'motdepasse');
+    await tap(tester, 'Créer mon compte');
+    // Le préfixe +228 seul ne compte pas comme un numéro.
+    expect(server.calls['/auth/register'], {
+      'name': 'Ama Mensah',
+      'email': 'ama@exemple.tg',
+      'password': 'motdepasse',
+      'password_confirmation': 'motdepasse',
+      'device_name': 'application-mobile',
+    });
+    expect(find.text('Où êtes-vous ?'), findsOneWidget);
   });
 
   testWidgets('le paiement mobile attend la confirmation du serveur', (tester) async {

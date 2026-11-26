@@ -15,9 +15,15 @@ class Session extends ChangeNotifier {
   static const _tokenKey = 'token';
   static const _themeKey = 'theme';
 
+  /// Le jeton de connexion enregistré, lu hors de l'interface (sonnerie d'appel appli fermée).
+  static Future<String?> storedToken() => _storage.read(key: _tokenKey);
+
   final ApiClient api;
 
   AppUser? user;
+
+  /// Le jeton de notification de ce téléphone, oublié par le serveur à la déconnexion.
+  String? Function()? deviceToken;
   ThemeMode themeMode = ThemeMode.system;
 
   /// Restaure la session. Sans réseau, l'utilisateur reste connecté et réessaie plus tard.
@@ -49,12 +55,34 @@ class Session extends ChangeNotifier {
   Future<void> requestCode(String phone) => api.post('/auth/request-code', {'phone': phone});
 
   Future<void> verifyCode(String phone, String code) async {
-    final data = await api.post('/auth/verify-code', {
+    await _signIn(await api.post('/auth/verify-code', {
       'phone': phone,
       'code': code,
       'device_name': 'application-mobile',
-    }) as Map<String, dynamic>;
+    }));
+  }
 
+  Future<void> login(String email, String password) async {
+    await _signIn(await api.post('/auth/login', {
+      'email': email,
+      'password': password,
+      'device_name': 'application-mobile',
+    }));
+  }
+
+  Future<void> register({required String name, required String email, String? phone, required String password}) async {
+    await _signIn(await api.post('/auth/register', {
+      'name': name,
+      'email': email,
+      'phone': ?phone,
+      'password': password,
+      'password_confirmation': password,
+      'device_name': 'application-mobile',
+    }));
+  }
+
+  Future<void> _signIn(Object? response) async {
+    final data = response as Map<String, dynamic>;
     api.token = data['token'] as String;
     await _storage.write(key: _tokenKey, value: api.token);
     user = AppUser.fromJson(data['user'] as Map<String, dynamic>);
@@ -75,7 +103,7 @@ class Session extends ChangeNotifier {
 
   Future<void> logout() async {
     try {
-      await api.post('/auth/logout');
+      await api.post('/auth/logout', {'device_token': ?deviceToken?.call()});
     } on Exception {
       // Le jeton local est supprimé même si le serveur est injoignable.
     }

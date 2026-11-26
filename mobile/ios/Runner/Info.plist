@@ -48,11 +48,17 @@
 		</dict>
 	</dict>
 	<key>NSPhotoLibraryUsageDescription</key>
-	<string>Vos photos servent à choisir une affiche à publier.</string>
+	<string>Vos photos servent à choisir une affiche ou à envoyer une photo au livreur.</string>
+	<key>NSCameraUsageDescription</key>
+	<string>L'appareil photo sert à envoyer une photo dans la discussion avec le livreur.</string>
 	<key>NSMicrophoneUsageDescription</key>
-	<string>Le micro sert à dicter votre commande.</string>
+	<string>Le micro sert à dicter votre commande et à envoyer des messages vocaux.</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>Votre position sert à placer le point de livraison.</string>
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>remote-notification</string>
+	</array>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
 	<key>UILaunchStoryboardName</key>

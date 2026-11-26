@@ -23,6 +23,7 @@ class CourierController extends Controller
         return OrderResource::collection(
             $request->user()->deliveries()
                 ->with(['items', 'shop'])
+                ->withCount(['messages as unread_count' => fn ($query) => $query->where('sender_id', '!=', $request->user()->id)->whereNull('read_at')])
                 ->whereIn('status', [OrderStatus::Confirmed, OrderStatus::Preparing, OrderStatus::Delivering])
                 ->latest('id')
                 ->get()

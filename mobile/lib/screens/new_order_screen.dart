@@ -175,7 +175,7 @@ class _NewOrderScreenState extends State<NewOrderScreen> {
         child: ListView(
           padding: const EdgeInsets.fromLTRB(16, 4, 16, 20),
           children: [
-            const Muted('Dites ou écrivez ce dont votre restaurant a besoin.'),
+            const Muted('Dites ou écrivez ce dont vous avez besoin.'),
             const SizedBox(height: 18),
             Center(
               child: Semantics(

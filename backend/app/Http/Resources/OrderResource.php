@@ -39,6 +39,8 @@ class OrderResource extends JsonResource
                 'unit_price' => $item->unit_price,
                 'quantity' => $item->quantity,
             ])),
+            'has_courier' => $this->courier_id !== null,
+            'unread_messages' => $this->whenCounted('unread'),
             'currency' => $this->currency,
             'payment_mode' => $this->payment_mode,
             'is_paid' => $this->isPaid(),

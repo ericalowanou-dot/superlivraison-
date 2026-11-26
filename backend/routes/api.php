@@ -2,7 +2,9 @@
 
 use App\Http\Controllers\Api\AdController;
 use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\Api\CallController;
 use App\Http\Controllers\Api\CourierController;
+use App\Http\Controllers\Api\MessageController;
 use App\Http\Controllers\Api\MyShopController;
 use App\Http\Controllers\Api\OrderController;
 use App\Http\Controllers\Api\PaymentController;
@@ -16,6 +18,8 @@ use Illuminate\Support\Facades\Route;
 Route::prefix('v1')->group(function () {
     Route::get('reference', ReferenceController::class);
 
+    Route::post('auth/register', [AuthController::class, 'register'])->middleware('throttle:auth');
+    Route::post('auth/login', [AuthController::class, 'login'])->middleware('throttle:auth');
     Route::post('auth/request-code', [AuthController::class, 'requestCode'])->middleware('throttle:otp-request');
     Route::post('auth/verify-code', [AuthController::class, 'verifyCode'])->middleware('throttle:otp-verify');
 
@@ -44,6 +48,17 @@ Route::prefix('v1')->group(function () {
         Route::post('orders/{order}/cancel', [OrderController::class, 'cancel']);
         Route::post('orders/{order}/reorder', [OrderController::class, 'reorder']);
         Route::post('orders/{order}/payments', [PaymentController::class, 'store']);
+
+        Route::get('orders/{order}/messages', [MessageController::class, 'index']);
+        Route::post('orders/{order}/messages', [MessageController::class, 'store'])->middleware('throttle:120,1');
+        Route::post('orders/{order}/messages/receipt', [MessageController::class, 'receipt']);
+        Route::post('orders/{order}/typing', [MessageController::class, 'typing'])->middleware('throttle:60,1');
+        Route::get('messages/{message}/media', [MessageController::class, 'media']);
+
+        Route::post('orders/{order}/calls', [CallController::class, 'store'])->middleware('throttle:20,1');
+        Route::get('calls/{call}', [CallController::class, 'show']);
+        Route::post('calls/{call}/accept', [CallController::class, 'accept']);
+        Route::post('calls/{call}/end', [CallController::class, 'end']);
 
         Route::get('payments', [PaymentController::class, 'index']);
         Route::get('payments/{payment}', [PaymentController::class, 'show']);
