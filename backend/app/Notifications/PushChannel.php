@@ -12,6 +12,7 @@ class PushChannel
     {
         foreach ($notifiable->deviceTokens()->pluck('token') as $token) {
             $this->push->send($token, $notification->title, $notification->body, array_filter([
+                'kind' => 'order',
                 'order_id' => $notification->order ? (string) $notification->order->id : null,
             ]));
         }

@@ -25,6 +25,9 @@ class ChatScreen extends StatefulWidget {
   final int orderId;
   final String reference;
 
+  /// La discussion affichée en ce moment : ses notifications ne s'affichent pas en double.
+  static int? visibleOrderId;
+
   @override
   State<ChatScreen> createState() => _ChatScreenState();
 }
@@ -74,6 +77,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+    ChatScreen.visibleOrderId = widget.orderId;
 
     _playerSubs
       ..add(_player.onPlayerComplete.listen((_) => setState(() {
@@ -105,6 +109,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
+    if (ChatScreen.visibleOrderId == widget.orderId) ChatScreen.visibleOrderId = null;
     _poll?.cancel();
     _typingTimer?.cancel();
     _recordTick?.cancel();

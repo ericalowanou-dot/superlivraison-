@@ -55,6 +55,10 @@
 	<string>Le micro sert à dicter votre commande et à envoyer des messages vocaux.</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>Votre position sert à placer le point de livraison.</string>
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>remote-notification</string>
+	</array>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
 	<key>UILaunchStoryboardName</key>

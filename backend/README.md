@@ -21,6 +21,8 @@ Renseignez `ADMIN_EMAIL` et `ADMIN_PASSWORD` dans `.env` avant `migrate --seed` 
 
 `queue:work` envoie les notifications et lance les retranscriptions.
 
+Pour de vraies notifications sur les téléphones, créez dans Firebase (Paramètres du projet, Comptes de service) une clé privée, déposez le fichier sous `storage/app/private/firebase.json`, puis mettez `PUSH_DRIVER=fcm` dans `.env`. Ce fichier ne va jamais dans Git.
+
 `reverb:start` fait tourner la discussion en direct entre le client et le livreur, sur le port `REVERB_PORT` (8080 par défaut). Si ce port est pris, changez `REVERB_PORT` dans `.env` et lancez `php artisan reverb:start --port=6001` par exemple. Sans ce serveur, la discussion marche quand même : l'application relit les messages toutes les quelques secondes.
 
 ## Tests

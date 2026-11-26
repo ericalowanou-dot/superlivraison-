@@ -31,6 +31,7 @@ class SendMessagePush implements ShouldQueue
             $push->send($token, $title, $this->message->type->preview($this->message->body), [
                 'kind' => 'message',
                 'order_id' => (string) $this->message->order_id,
+                'reference' => (string) $this->message->order->reference,
             ]);
         }
     }

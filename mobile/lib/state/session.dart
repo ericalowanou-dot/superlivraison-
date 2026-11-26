@@ -18,6 +18,9 @@ class Session extends ChangeNotifier {
   final ApiClient api;
 
   AppUser? user;
+
+  /// Le jeton de notification de ce téléphone, oublié par le serveur à la déconnexion.
+  String? Function()? deviceToken;
   ThemeMode themeMode = ThemeMode.system;
 
   /// Restaure la session. Sans réseau, l'utilisateur reste connecté et réessaie plus tard.
@@ -75,7 +78,7 @@ class Session extends ChangeNotifier {
 
   Future<void> logout() async {
     try {
-      await api.post('/auth/logout');
+      await api.post('/auth/logout', {'device_token': ?deviceToken?.call()});
     } on Exception {
       // Le jeton local est supprimé même si le serveur est injoignable.
     }

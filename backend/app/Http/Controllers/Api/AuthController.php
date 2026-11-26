@@ -51,6 +51,12 @@ class AuthController extends Controller
 
     public function logout(Request $request): JsonResponse
     {
+        // Le téléphone ne doit plus recevoir les notifications du compte qu'il quitte.
+        $device = $request->validate(['device_token' => ['nullable', 'string', 'max:512']])['device_token'] ?? null;
+        if ($device !== null) {
+            $request->user()->deviceTokens()->where('token', $device)->delete();
+        }
+
         $request->user()->currentAccessToken()->delete();
 
         return response()->json(status: 204);

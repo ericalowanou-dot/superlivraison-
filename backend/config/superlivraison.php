@@ -7,6 +7,8 @@ return [
      */
     'sms_driver' => env('SMS_DRIVER', 'log'),
     'push_driver' => env('PUSH_DRIVER', 'log'),
+    // Clé JSON d'un compte de service Firebase, pour PUSH_DRIVER=fcm.
+    'firebase_credentials' => env('FIREBASE_CREDENTIALS', storage_path('app/private/firebase.json')),
     'transcriber_driver' => env('TRANSCRIBER_DRIVER', 'fake'),
     'payment_driver' => env('PAYMENT_DRIVER', 'fake'),
     'fake_payment_secret' => env('FAKE_PAYMENT_SECRET', 'dev-secret'),
