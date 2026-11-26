@@ -17,6 +17,8 @@ use Illuminate\Support\Facades\Route;
 Route::prefix('v1')->group(function () {
     Route::get('reference', ReferenceController::class);
 
+    Route::post('auth/register', [AuthController::class, 'register'])->middleware('throttle:auth');
+    Route::post('auth/login', [AuthController::class, 'login'])->middleware('throttle:auth');
     Route::post('auth/request-code', [AuthController::class, 'requestCode'])->middleware('throttle:otp-request');
     Route::post('auth/verify-code', [AuthController::class, 'verifyCode'])->middleware('throttle:otp-verify');
 

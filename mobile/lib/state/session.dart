@@ -52,12 +52,34 @@ class Session extends ChangeNotifier {
   Future<void> requestCode(String phone) => api.post('/auth/request-code', {'phone': phone});
 
   Future<void> verifyCode(String phone, String code) async {
-    final data = await api.post('/auth/verify-code', {
+    await _signIn(await api.post('/auth/verify-code', {
       'phone': phone,
       'code': code,
       'device_name': 'application-mobile',
-    }) as Map<String, dynamic>;
+    }));
+  }
 
+  Future<void> login(String email, String password) async {
+    await _signIn(await api.post('/auth/login', {
+      'email': email,
+      'password': password,
+      'device_name': 'application-mobile',
+    }));
+  }
+
+  Future<void> register({required String name, required String email, String? phone, required String password}) async {
+    await _signIn(await api.post('/auth/register', {
+      'name': name,
+      'email': email,
+      'phone': ?phone,
+      'password': password,
+      'password_confirmation': password,
+      'device_name': 'application-mobile',
+    }));
+  }
+
+  Future<void> _signIn(Object? response) async {
+    final data = response as Map<String, dynamic>;
     api.token = data['token'] as String;
     await _storage.write(key: _tokenKey, value: api.token);
     user = AppUser.fromJson(data['user'] as Map<String, dynamic>);
