@@ -50,35 +50,47 @@ class _OtpScreenState extends State<OtpScreen> {
     return Scaffold(
       appBar: AppBar(),
       body: SafeArea(
-        child: Center(
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 460),
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(24, 8, 24, 32),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  const Heading('Entrez votre code'),
-                  const SizedBox(height: 8),
-                  Muted('Nous l\'avons envoyé par SMS au ${widget.phone}.'),
-                  const SizedBox(height: 24),
-                  const Label('Code à 6 chiffres'),
-                  const SizedBox(height: 8),
-                  TextField(
-                    controller: _code,
-                    autofocus: true,
-                    keyboardType: TextInputType.number,
-                    maxLength: 6,
-                    textAlign: TextAlign.center,
-                    autofillHints: const [AutofillHints.oneTimeCode],
-                    style: const TextStyle(fontSize: 26, fontWeight: FontWeight.w700, letterSpacing: 8),
-                    decoration: const InputDecoration(hintText: '000000', counterText: ''),
-                    onSubmitted: (_) => _submit(),
+        // Le clavier réduit la hauteur : la page défile au lieu de déborder,
+        // et le bouton reste en bas quand la place le permet.
+        child: LayoutBuilder(
+          builder: (context, viewport) => SingleChildScrollView(
+            child: ConstrainedBox(
+              constraints: BoxConstraints(minHeight: viewport.maxHeight),
+              child: IntrinsicHeight(
+                child: Center(
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(maxWidth: 460),
+                    child: Padding(
+                      padding: const EdgeInsets.fromLTRB(24, 8, 24, 32),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          const Heading('Entrez votre code'),
+                          const SizedBox(height: 8),
+                          Muted('Nous l\'avons envoyé par SMS au ${widget.phone}.'),
+                          const SizedBox(height: 24),
+                          const Label('Code à 6 chiffres'),
+                          const SizedBox(height: 8),
+                          TextField(
+                            controller: _code,
+                            autofocus: true,
+                            keyboardType: TextInputType.number,
+                            maxLength: 6,
+                            textAlign: TextAlign.center,
+                            autofillHints: const [AutofillHints.oneTimeCode],
+                            style: const TextStyle(fontSize: 26, fontWeight: FontWeight.w700, letterSpacing: 8),
+                            decoration: const InputDecoration(hintText: '000000', counterText: ''),
+                            onSubmitted: (_) => _submit(),
+                          ),
+                          TextButton(onPressed: _resend, child: const Text('Renvoyer le code')),
+                          const Spacer(),
+                          const SizedBox(height: 16),
+                          BusyButton(label: 'Continuer', busy: _busy, onPressed: _submit),
+                        ],
+                      ),
+                    ),
                   ),
-                  TextButton(onPressed: _resend, child: const Text('Renvoyer le code')),
-                  const Spacer(),
-                  BusyButton(label: 'Continuer', busy: _busy, onPressed: _submit),
-                ],
+                ),
               ),
             ),
           ),
